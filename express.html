@@ -1,0 +1,69 @@
+// app.js
+const express = require('express');
+const app = express();
+app.use(express.urlencoded({ extended: false }));
+
+/* 登录页 */
+app.get('/', (req, res) => {
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.send(`<!doctype html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>登录 - 大凉国</title>
+  <style>
+    body{font-family:"宋体",SimSun,serif;background:#f7f7f7;display:flex;height:100vh;align-items:center;justify-content:center;margin:0;padding:0}
+    .box{background:#fff;padding:8vw;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.15);width:90vw;max-width:400px;box-sizing:border-box}
+    h3{margin-top:0;text-align:center;font-size:6vw}
+    input{width:100%;padding:3vw;margin:2vw 0;border:1px solid #ccc;border-radius:4px;font-size:4vw;box-sizing:border-box}
+    button{width:100%;padding:3vw;background:#004d99;color:#fff;border:none;border-radius:4px;font-size:4.5vw;cursor:pointer}
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h3>众生登录</h3>
+    <form action="/api/login" method="post">
+      <input name="username" placeholder="用户名" required>
+      <input name="password" type="password" placeholder="密码" required>
+      <button type="submit">登录</button>
+    </form>
+  </div>
+</body>
+</html>`);
+});
+
+/* 登录接口 */
+app.post('/api/login', (req, res) => {
+  const { username, password } = req.body;
+  if (username !== 'alice' || password !== '123456') {
+    return res.status(401).send('账号或密码错误');
+  }
+  res.redirect('/home');
+});
+
+/* 成功页 */
+app.get('/home', (req, res) => {
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.send(`<!doctype html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>大凉国 • 我的主页</title>
+  <style>
+    body{font-family:"宋体",SimSun,serif;background:#eaf4ff;margin:0;padding:8vw;font-size:4.5vw;line-height:1.8}
+    h1{font-size:6vw;margin-top:0}
+    button{width:100%;padding:3vw;font-size:4.5vw;background:#004d99;color:#fff;border:none;border-radius:4px;cursor:pointer}
+  </style>
+</head>
+<body>
+  <h1>欢迎回来，众生！</h1>
+  <p>您已彻底跳转到新页面。</p>
+  <button onclick="location.href='/'">返回登录</button>
+</body>
+</html>`);
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server running at http://localhost:${PORT}`));
