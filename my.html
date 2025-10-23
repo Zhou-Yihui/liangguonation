@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>我的页面 | My Page</title>
+  <style>
+    body { font-family:"Microsoft YaHei",sans-serif; background-color:#cce7ff; color:#000; padding:40px; }
+    h1 { font-size:36px; margin-bottom:20px; }
+    button { padding:6px 12px; margin-top:20px; cursor:pointer; }
+  </style>
+</head>
+<body>
+  <h1 class="zh">欢迎，众生</h1>
+  <h1 class="en" style="display:none;">Welcome, Citizen</h1>
+
+  <p class="zh">您的通证编码：<strong>DLR-2025-0001</strong></p>
+  <p class="en" style="display:none;">Your Certificate Code: <strong>DLR-2025-0001</strong></p>
+
+  <p class="zh">在这里可以查看您的账户信息和注册详情。</p>
+  <p class="en" style="display:none;">Here you can view your account information and registration details.</p>
+
+  <button onclick="goToHome()">返回首页 / Back to Home</button>
+  <button onclick="toggleLang()">切换语言 / Switch Language</button>
+
+  <script>
+    // 中英文切换
+    function toggleLang() {
+      const zh = document.querySelectorAll('.zh');
+      const en = document.querySelectorAll('.en');
+      zh.forEach(el => el.style.display = el.style.display === 'none' ? 'block' : 'none');
+      en.forEach(el => el.style.display = el.style.display === 'none' ? 'block' : 'none');
+    }
+
+    // 返回首页
+    function goToHome() {
+      window.location.href = "index.html";
+    }
+  </script>
+</body>
+</html>
+
+
+<!-- 返回首页按钮 -->
+<button onclick="location.href='/liangguonation/'">返回首页</button>
+
+
+<!-- ===== 一键签到版块 ===== -->
+<section id="check-in" style="max-width:400px;margin:40px auto;padding:20px;font-family:Microsoft YaHei;background:#fdfaf6;border:2px solid #d4af37;border-radius:8px;text-align:center;">
+  <h3 style="margin:0 0 10px;color:#b71c1c;">每日签到</h3>
+  <p id="check-status" style="margin:0 0 15px;font-size:14px;color:#666;">今日尚未签到</p>
+
+  <!-- 签到按钮 -->
+  <button id="btn-check" style="padding:10px 30px;font-size:16px;background:#b71c1c;color:#fff;border:none;border-radius:30px;cursor:pointer;transition:.3s;">
+    一键签到
+  </button>
+
+  <!-- 连续天数 -->
+  <p id="streak" style="margin:10px 0 0;font-size:13px;color:#666;">连续签到：<span id="streak-num">0</span> 天</p>
+</section>
+
+<script>
+/* ---------- 签到逻辑 ---------- */
+const btn   = document.getElementById('btn-check');
+const status= document.getElementById('check-status');
+const streak= document.getElementById('streak-num');
+
+/* 本地存储键：今天日期 */
+const todayKey = 'checkIn_' + new Date().toISOString().slice(0,10);
+
+function init(){
+  const done = localStorage.getItem(todayKey);
+  if(done){
+    btn.textContent = '今日已签到';
+    btn.disabled = true;
+    btn.style.background = '#999';
+    status.textContent = '今日签到完成！';
+  }
+  streak.textContent = localStorage.getItem('streakTotal') || '0';
+}
+
+btn.addEventListener('click', function(){
+  /* 写入今日标记 */
+  localStorage.setItem(todayKey, '1');
+  /* 连续天数 +1 */
+  let total = parseInt(localStorage.getItem('streakTotal') || '0');
+  localStorage.setItem('streakTotal', total + 1);
+  /* 视觉反馈 */
+  btn.textContent = '今日已签到';
+  btn.disabled = true;
+  btn.style.background = '#999';
+  status.textContent = '签到成功！愿您今日极乐圆满。';
+  streak.textContent = total + 1;
+});
+
+/* 页面加载时初始化 */
+init();
+</script>
+
+
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>我的页面 | 大凉国</title>
+<style>
+:root{--palace-red:#b71c1c;--palace-gold:#d4af37;--paper:#fdfaf6;--ink:#2c2c2c;}
+body{margin:0;font-family:Microsoft YaHei,serif;background:var(--paper);color:var(--ink);}
+nav{position:sticky;top:0;background:var(--palace-red);display:flex;gap:15px;padding:10px 20px;z-index:10;}
+nav a{color:#fff;text-decoration:none;padding:6px 12px;border:1px solid var(--palace-gold);border-radius:4px;transition:.3s;}
+nav a:hover{background:var(--palace-gold);color:var(--palace-red);}
+.section{display:none;padding:30px 20px;max-width:900px;margin:auto;}
+.section.active{display:block;}
+h2{margin-bottom:20px;color:var(--palace-red);}
+label{display:block;margin:10px 0 5px;font-weight:bold;}
+input,select,textarea{width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;background:#fff;}
+button{padding:10px 20px;background:var(--palace-red);color:#fff;border:none;border-radius:30px;cursor:pointer;}
+button:hover{background:#8b0000;}
+</style>
+</head>
+
+<body>
+<!-- ===== 顶部导航（含所有板块） ===== -->
+<nav>
+  <a href="#" onclick="showSec('account')">账号管理</a>
+  <a href="#" onclick="showSec('general')">通用</a>
+  <a href="#" onclick="showSec('privacy')">隐私</a>
+  <a href="#" onclick="showSec('gov')">政务信息</a>
+  <a href="#" onclick="showSec('other')">其他</a>
+  <a href="index.html">返回首页</a>
+</nav>
+
+<!-- ===== 账号管理 ===== -->
+<section id="account" class="section active">
+  <h2>账号管理</h2>
+  <label>用户名（不可修改）</label>
+  <input type="text" id="username" readonly>
+  <label>昵称</label>
+  <input type="text" id="nickname">
+  <label>头像</label>
+  <input type="file" id="avatar" accept="image/*">
+  <img id="avatar-img" style="width:120px;height:120px;border:1px solid #ccc;border-radius:50%;margin-top:10px;">
+  <label>出生日期</label>
+  <input type="date" id="birthday">
+  <label>个人简介</label>
+  <textarea id="bio" rows="3"></textarea>
+  <button onclick="saveAccount()">保存资料</button>
+</section>
+
+<!-- ===== 通用 ===== -->
+<section id="general" class="section">
+  <h2>通用设置</h2>
+  <label>语言</label>
+  <select id="lang"><option value="zh">中文</option><option value="en">English</option></select>
+  <label>主题</label>
+  <select id="theme"><option value="light">浅色</option><option value="dark">深色</option></select>
+  <label>通知开关</label>
+  <input type="checkbox" id="notify"> 启用系统通知
+  <button onclick="saveGeneral()">保存设置</button>
+</section>
+
+<!-- ===== 隐私 ===== -->
+<section id="privacy" class="section">
+  <h2>隐私设置</h2>
+  <label>公开 profile</label>
+  <input type="checkbox" id="public"> 允许其他用户查看我的资料
+  <label>在线状态</label>
+  <input type="checkbox" id="online"> 显示在线状态
+  <label>数据导出</label>
+  <button onclick="exportData()">导出我的数据</button>
+  <label>注销账号</label>
+  <button onclick="deleteAccount()">永久注销</button>
+</section>
+
+<!-- ===== 政务信息 ===== -->
+<section id="gov" class="section">
+  <h2>政务信息</h2>
+  <label>通证编号</label>
+  <input type="text" id="tokenId" readonly>
+  <label>签发机关</label>
+  <input type="text" id="issuer" readonly>
+  <label>签发日期</label>
+  <input type="date" id="issueDate" readonly>
+  <label>有效期至</label>
+  <input type="date" id="expiryDate" readonly>
+  <label>星际通行权限</label>
+  <textarea id="permissions" readonly></textarea>
+  <button onclick="downloadCertificate()">下载证件PDF</button>
+</section>
+
+<!-- ===== 其他 ===== -->
+<section id="other" class="section">
+  <h2>其他</h2>
+  <label>收藏夹</label>
+  <textarea id="favorites" rows="4" placeholder="粘贴收藏链接或文字"></textarea>
+  <label>笔记</label>
+  <textarea id="notes" rows="6" placeholder="个人笔记"></textarea>
+  <label>快捷短语</label>
+  <input type="text" id="quickPhrase" placeholder="一键发送的短语">
+  <button onclick="saveOther()">保存其他</button>
+</section>
+
+<script>
+/* 切换板块 */
+function showSec(id){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+/* 保存函数（无后端，仅 localStorage） */
+function saveAccount(){
+  localStorage.setItem('nickname',document.getElementById('nickname').value);
+  localStorage.setItem('birthday',document.getElementById('birthday').value);
+  localStorage.setItem('bio',document.getElementById('bio').value);
+  // 头像预览
+  const file=document.getElementById('avatar').files[0];
+  if(file){
+     const reader=new FileReader();
+     reader.onload=e=>localStorage.setItem('avatar',e.target.result);
+     reader.readAsDataURL(file);
+  }
+  alert('账号资料已保存（本地）');
+  loadAccount();
+}
+function saveGeneral(){
+  localStorage.setItem('lang',document.getElementById('lang').value);
+  localStorage.setItem('theme',document.getElementById('theme').value);
+  localStorage.setItem('notify',document.getElementById('notify').checked);
+  alert('通用设置已保存（本地）');
+}
+function saveOther(){
+  localStorage.setItem('favorites',document.getElementById('favorites').value);
+  localStorage.setItem('notes',document.getElementById('notes').value);
+  localStorage.setItem('quickPhrase',document.getElementById('quickPhrase').value);
+  alert('其他已保存（本地）');
+}
+function exportData(){
+  const data={
+    account:{nickname:localStorage.getItem('nickname'),birthday:localStorage.getItem('birthday'),bio:localStorage.getItem('bio'),avatar:localStorage.getItem('avatar')},
+    general:{lang:localStorage.getItem('lang'),theme:localStorage.getItem('theme'),notify:localStorage.getItem('notify')},
+    privacy:{public:localStorage.getItem('public'),online:localStorage.getItem('online')},
+    gov:{tokenId:localStorage.getItem('tokenId'),issuer:localStorage.getItem('issuer'),issueDate:localStorage.getItem('issueDate'),expiryDate:localStorage.getItem('expiryDate'),permissions:localStorage.getItem('permissions')},
+    other:{favorites:localStorage.getItem('favorites'),notes:localStorage.getItem('notes'),quickPhrase:localStorage.getItem('quickPhrase')}
+  };
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download='myData.json';a.click();URL.revokeObjectURL(url);
+}
+function deleteAccount(){
+  if(!confirm('确定要永久注销？此操作不可恢复！'))return;
+  localStorage.clear();
+  alert('账号已清空（本地）');
+  location.reload();
+}
+function downloadCertificate(){
+  const cert={
+    name:localStorage.getItem('nickname')||'用户',
+    tokenId:localStorage.getItem('tokenId'),
+    issuer:localStorage.getItem('issuer'),
+    issueDate:localStorage.getItem('issueDate'),
+    expiryDate:localStorage.getItem('expiryDate'),
+    permissions:localStorage.getItem('permissions')
+  };
+  const blob=new Blob([JSON.stringify(cert,null,2)],{type:'application/pdf'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download='certificate.json';a.click();URL.revokeObjectURL(url);
+}
+
+/* 加载数据（无后端，仅 localStorage） */
+function loadAll(){
+  // 账号
+  document.getElementById('username').value='user001'; // 示例固定
+  document.getElementById('nickname').value=localStorage.getItem('nickname')||'';
+  document.getElementById('birthday').value=localStorage.getItem('birthday')||'';
+  document.getElementById('bio').value=localStorage.getItem('bio')||'';
+  const avatar=localStorage.getItem('avatar');
+  if(avatar)document.getElementById('avatar-img').src=avatar;
+  // 通用
+  document.getElementById('lang').value=localStorage.getItem('lang')||'zh';
+  document.getElementById('theme').value=localStorage.getItem('theme')||'light';
+  document.getElementById('notify').checked=localStorage.getItem('notify')==='true';
+  // 隐私
+  document.getElementById('public').checked=localStorage.getItem('public')==='true';
+  document.getElementById('online').checked=localStorage.getItem('online')==='true';
+  // 政务（示例固定）
+  document.getElementById('tokenId').value='DLR-2025-0001';
+  document.getElementById('issuer').value='中央制证发证总署';
+  document.getElementById('issueDate').value='2025-01-01';
+  document.getElementById('expiryDate').value='2034-01-01';
+  document.getElementById('permissions').value='凡多、瀛凰、南极边区都护、如意路全域通行';
+  // 其他
+  document.getElementById('favorites').value=localStorage.getItem('favorites')||'';
+  document.getElementById('notes').value=localStorage.getItem('notes')||'';
+  document.getElementById('quickPhrase').value=localStorage.getItem('quickPhrase')||'';
+}
+window.onload=loadAll;
+</script>
+</body>
+</html>
