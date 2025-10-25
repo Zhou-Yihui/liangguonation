@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>注册 - 超宇宙文明</title>
+<style>/* 同 login.html 样式，直接复用 */</style>
+</head>
+<body>
+<div class="login-container">
+  <h2 class="login-title">账号注册</h2>
+  <form id="regForm">
+    <div class="form-group">
+      <label>通证编号（账号）</label>
+      <input class="form-control" id="regToken" placeholder="自定义编号，如 CYZ-2025-0002" required>
+    </div>
+    <div class="form-group">
+      <label>登录密码</label>
+      <input type="password" class="form-control" id="regPwd" placeholder="6-16 位字符" required>
+    </div>
+    <button type="submit" class="submit-btn">立即注册</button>
+    <div class="back-home">
+      <a href="login.html">已有账号？去登录</a>
+    </div>
+  </form>
+</div>
+
+<script>
+document.getElementById('regForm').addEventListener('submit', function (e) {
+  e.preventDefault();
+  const t = document.getElementById('regToken').value.trim();
+  const p = document.getElementById('regPwd').value.trim();
+
+  if (t.length < 3 || p.length < 6) {
+    alert('编号≥3位，密码≥6位！'); return;
+  }
+  // 1. 读取已注册列表
+  let users = JSON.parse(localStorage.getItem('users') || '[]');
+  // 2. 是否重复
+  if (users.find(u => u.token === t)) {
+    alert('该编号已被注册！'); return;
+  }
+  // 3. 新增并保存
+  users.push({ token: t, pwd: p });
+  localStorage.setItem('users', JSON.stringify(users));
+  alert('注册成功！即将跳往登录页');
+  location.href = 'login.html';
+});
+</script>
+</body>
+</html>
