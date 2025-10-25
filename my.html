@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>超宇宙文明 · 我的</title>
+<style>
+:root{--palace-red:#b71c1c;--palace-gold:#d4af37;--paper:#fdfaf6;--ink:#2c2c2c;--gap:20px;}
+body{margin:0;font-family:Microsoft YaHei,serif;background:var(--paper);color:var(--ink);}
+a{color:var(--palace-red);text-decoration:none;}
+header{position:sticky;top:0;z-index:10;background:var(--palace-red);display:flex;justify-content:space-between;align-items:center;padding:10px 20px;box-shadow:0 2px 8px rgba(0,0,0,.1);}
+header .logo{color:#fff;font-size:18px;font-weight:bold;}
+header .user-bar{display:flex;align-items:center;gap:15px;color:#fff;font-size:14px;}
+header button{padding:6px 12px;border:none;border-radius:4px;cursor:pointer;}
+header .home-btn{background:#e8f3ff;color:#165dff;}
+header .logout-btn{background:#f53f3f;color:#fff;}
+.wrap{display:flex;max-width:1200px;margin:auto;padding:var(--gap);}
+aside{width:320px;background:#fff;border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,.05);padding:25px;}
+main{flex:1;margin-left:var(--gap);display:flex;flex-direction:column;gap:var(--gap);}
+.avatar-box{text-align:center;margin-bottom:25px;}
+.avatar{width:100px;height:100px;border-radius:50%;background:#e8f3ff;display:flex;align-items:center;justify-content:center;font-size:40px;color:#165dff;margin:0 auto;position:relative;cursor:pointer;}
+.avatar input{position:absolute;width:100%;height:100%;opacity:0;cursor:pointer;}
+.info-item{margin-bottom:18px;font-size:14px;}
+.info-item .label{color:#86909c;display:inline-block;width:80px;}
+.edit-btn{width:100%;padding:10px;background:#f5f7fa;border:1px solid #e5e6eb;border-radius:4px;cursor:pointer;margin-top:10px;}
+.section{display:none;background:#fff;border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,.05);padding:25px;}
+.section.active{display:block;}
+.section h2{margin:0 0 20px;color:var(--palace-red);}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+.form-grid .full{grid-column:1/3;}
+.form-grid label{display:block;font-size:14px;margin-bottom:6px;}
+.form-grid input,.form-grid select,.form-grid textarea{width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;}
+button.submit{padding:8px 20px;background:var(--palace-red);color:#fff;border:none;border-radius:30px;cursor:pointer;}
+.record-list{margin-top:15px;font-size:14px;}
+.record-item{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px dashed #f2f3f5;}
+#check-in{max-width:400px;margin:30px auto;padding:20px;border:2px solid var(--palace-gold);border-radius:8px;text-align:center;background:#fff;}
+#check-in h3{margin:0 0 10px;color:var(--palace-red);}
+#check-status{font-size:14px;color:#666;margin-bottom:15px;}
+#btn-check{padding:10px 30px;font-size:16px;background:var(--palace-red);color:#fff;border:none;border-radius:30px;cursor:pointer;}
+#btn-check:disabled{background:#999;}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;z-index:100;}
+.modal.show{display:flex;}
+.modal-content{background:#fff;width:90%;max-width:600px;border-radius:8px;padding:25px;max-height:80vh;overflow-y:auto;}
+.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;}
+.close-btn{font-size:24px;cursor:pointer;color:#999;}
+.en{display:none;}
+</style>
+</head>
+<body>
+
+<header>
+    <div class="logo">超宇宙文明 · 我的</div>
+    <div class="user-bar">
+        <span id="currentUser">加载中…</span>
+        <button class="home-btn" onclick="location.href='index.html'">返回首页</button>
+        <button class="logout-btn" onclick="location.href='login.html'">退出登录</button>
+        <button onclick="toggleLang()">中/EN</button>
+    </div>
+</header>
+
+<div class="wrap">
+<aside>
+    <div class="avatar-box">
+        <div class="avatar">🌌
+            <input type="file" accept="image/*" id="avatarUpload">
+        </div>
+        <p style="font-size:13px;color:#86909c;">点击更换头像</p>
+    </div>
+    <div class="info-item"><span class="label">用户名：</span><span id="userName">--</span></div>
+    <div class="info-item"><span class="label">通证：</span><span id="userToken">--</span></div>
+    <div class="info-item"><span class="label">文明等级：</span><span id="userLevel">初始探索者</span></div>
+    <div class="info-item"><span class="label">加入时间：</span><span>2024-01-01</span></div>
+    <button class="edit-btn" onclick="editUserName()">编辑个人信息</button>
+
+    <section id="check-in">
+        <h3 class="zh">每日签到</h3><h3 class="en">Daily Check-in</h3>
+        <p id="check-status" class="zh">今日尚未签到</p><p id="check-status" class="en">Not checked in today</p>
+        <button id="btn-check" onclick="doCheckIn()">一键签到 / Check-in</button>
+        <p class="zh" style="margin-top:10px;font-size:13px;color:#666;">连续签到：<span id="streak">0</span> 天</p>
+        <p class="en" style="margin-top:10px;font-size:13px;color:#666;">Streak：<span id="streak">0</span> days</p>
+    </section>
+</aside>
+
+<main>
+    <nav style="display:flex;gap:15px;margin-bottom:var(--gap);">
+        <button class="submit" onclick="showSec('account')">账号管理</button>
+        <button class="submit" onclick="showSec('general')">通用</button>
+        <button class="submit" onclick="showSec('privacy')">隐私</button>
+        <button class="submit" onclick="showSec('gov')">政务信息</button>
+        <button class="submit" onclick="showSec('other')">其他</button>
+        <button class="submit" onclick="showSec('citizen')">公民互动</button>
+    </nav>
+
+    <!-- 账号管理 -->
+    <section id="account" class="section active">
+        <h2>账号管理</h2>
+        <label>昵称</label><input id="nickname" placeholder="昵称">
+        <label>出生日期</label><input type="date" id="birthday">
+        <label>个人简介</label><textarea id="bio" rows="3"></textarea>
+        <button class="submit" onclick="saveAccount()">保存资料</button>
+    </section>
+
+    <!-- 通用 -->
+    <section id="general" class="section">
+        <h2>通用设置</h2>
+        <label>语言</label>
+        <select id="lang"><option value="zh">中文</option><option value="en">English</option></select>
+        <label>主题</label>
+        <select id="theme"><option value="light">浅色</option><option value="dark">深色</option></select>
+        <label><input type="checkbox" id="notify"> 启用系统通知</label>
+        <button class="submit" onclick="saveGeneral()">保存设置</button>
+    </section>
+
+    <!-- 隐私 -->
+    <section id="privacy" class="section">
+        <h2>隐私设置</h2>
+        <label><input type="checkbox" id="public"> 允许其他用户查看我的资料</label>
+        <label><input type="checkbox" id="online"> 显示在线状态</label>
+        <div style="margin-top:15px;">
+            <button class="submit" onclick="exportData()">导出我的数据</button>
+            <button class="submit" onclick="if(confirm('确定永久注销？')){localStorage.clear();location.reload()}">永久注销</button>
+        </div>
+    </section>
+
+    <!-- 政务信息 -->
+    <section id="gov" class="section">
+        <h2>政务信息</h2>
+        <div class="form-grid">
+            <div><label>通证编号</label><input id="tokenId" readonly></div>
+            <div><label>签发机关</label><input id="issuer" readonly></div>
+            <div><label>签发日期</label><input type="date" id="issueDate" readonly></div>
+            <div><label>有效期至</label><input type="date" id="expiryDate" readonly></div>
+            <div class="full"><label>星际通行权限</label><textarea id="permissions" readonly></textarea></div>
+        </div>
+        <button class="submit" onclick="downloadCertificate()">下载证件PDF</button>
+    </section>
+
+    <!-- 其他 -->
+    <section id="other" class="section">
+        <h2>其他</h2>
+        <label>收藏夹</label><textarea id="favorites" rows="4" placeholder="粘贴收藏链接或文字"></textarea>
+        <label>笔记</label><textarea id="notes" rows="6" placeholder="个人笔记"></textarea>
+        <label>快捷短语</label><input id="quickPhrase" placeholder="一键发送的短语">
+        <button class="submit" onclick="saveOther()">保存其他</button>
+    </section>
+
+    <!-- 公民互动 -->
+    <section id="citizen" class="section">
+        <h2>公民互动功能</h2>
+        <button class="submit" onclick="openModal('modal-apply')">通证申领模拟</button>
+        <button class="submit" onclick="openModal('modal-calc')">域外兑换计算器</button>
+        <button class="submit" onclick="openModal('modal-query')">星际备案查询</button>
+        <button class="submit" onclick="openModal('modal-feedback')">意见反馈</button>
+        <button class="submit" onclick="openModal('modal-law')">法律文件导航</button>
+    </section>
+
+    <!-- 探索记录 -->
+    <section class="section active">
+        <h2>超宇宙探索记录</h2>
+        <div class="record-list">
+            <div class="record-item"><span>浏览「超宇宙起源」核心文档</span><span class="record-time">2024-05-10 14:23</span></div>
+            <div class="record-item"><span>解锁「星际疆域」基础星图</span><span class="record-time">2024-05-08 09:45</span></div>
+            <div class="record-item"><span>首次完成身份验证登录</span><span class="record-time">2024-05-01 16:10</span></div>
+        </div>
+    </section>
+</main>
+</div>
+
+<!-- ===== 弹层集合 ===== -->
+<div id="modal-apply" class="modal"><div class="modal-content">
+    <div class="modal-head"><span class="zh">通证申领模拟</span><span class="en">Token Application</span><span class="close-btn" onclick="closeModal()">&times;</span></div>
+    <form onsubmit="alert('申领成功（模拟）');closeModal();return false;"><label class="zh">姓名</label><input required><button class="submit" type="submit">提交</button></form>
+</div></div>
+
+<div id="modal-calc" class="modal"><div class="modal-content">
+    <div class="modal-head"><span class="zh">域外兑换计算器</span><span class="en">Exchange Calculator</span><span class="close-btn" onclick="closeModal()">&times;</span></div>
+    <label class="zh">输入纪念币数量</label><input type="number" id="coin" placeholder="100"><button class="submit" onclick="alert('可兑换 '+(document.getElementById('coin').value*1.2)+' 外币（模拟）')">计算</button>
+</div></div>
+
+<div id="modal-query" class="modal"><div class="modal-content">
+    <div class="modal-head"><span class="zh">星际备案查询</span><span class="en">Record Query</span><span class="close-btn" onclick="closeModal()">&times;</span></div>
+    <input placeholder="输入通证编号"><button class="submit" onclick="alert('查询结果：无限制通行（模拟）')">查询</button>
+</div></div>
+
+<div id="modal-feedback" class="modal"><div class="modal-content">
+    <div class="modal-head"><span class="zh">意见反馈</span><span class="en">Feedback</span><span class="close-btn" onclick="closeModal()">&times;</span></div>
+    <form onsubmit="alert('感谢您的反馈！');closeModal();return false;"><select required><option value="">选择机构</option><option>觉性监察院</option><option>超宇宙技术院</option><option>圣世研究博览院</option></select><textarea rows="4" required placeholder="请填写意见"></textarea><button class="submit" type="submit">提交</button></form>
+</div></div>
+
+<div id="modal-law" class="modal"><div class="modal-content">
+    <div class="modal-head"><span class="zh">法律文件导航</span><span class="en">Law Navigation</span><span class="close-btn" onclick="closeModal()">&times;</span></div>
+    <ul><li><a href="#">第一章 总则</a></li><li><a href="#">第二章 高维公民权</a></li><li><a href="#">第三章 星际通行</a></li></ul>
+</div></div>
+
+<div id="modal-register" class="modal"><div class="modal-content">
+    <div class="modal-head"><span class="zh">注册/续期通证</span><span class="en">Register/Renew</span><span class="close-btn" onclick="closeModal()">&times;</span></div>
+    <form onsubmit="alert('提交成功（模拟）');closeModal();return false;"><label class="zh">姓名</label><input required><label class="zh">身份证号码</label><input required><button class="submit" type="submit">提交</button></form>
+</div></div>
+
+<div id="modal-special" class="modal"><div class="modal-content">
+    <div class="modal-head"><span class="zh">申请访问特区</span><span class="close-btn" onclick="closeModal()">&times;</span></div>
+    <form onsubmit="alert('申请已提交（模拟）');closeModal();return false;"><label>目的地区</label><select><option>瀛凰特区</option><option>宇联特区</option></select><label>申请理由</label><textarea rows="4" required></textarea><button class="submit" type="submit">提交</button></form>
+</div></div>
+
+<div id="modal-history" class="modal"><div class="modal-content">
+    <div class="modal-head"><span class="zh">历史记录</span><span class="close-btn" onclick="closeModal()">&times;</span></div>
+    <table width="100%"><tr><th>日期</th><th>操作</th></tr><tr><td>正应元年八月一日</td><td>注册通证</td></tr><tr><td>正应元年八月五日</td><td>申请访问瀛凰特区</td></tr></table>
+</div></div>
+
+<div id="modal-support" class="modal"><div class="modal-content">
+    <div class="modal-head"><span class="zh">在线客服</span><span class="close-btn" onclick="closeModal()">&times;</span></div>
+    <form onsubmit="alert('问题已提交（模拟）');closeModal();return false;"><label>问题描述</label><textarea rows="4" required></textarea><button class="submit" type="submit">提交</button></form>
+</div></div>
+
+<div id="modal-changepwd" class="modal"><div class="modal-content">
+    <div class="modal-head"><span class="zh">修改密码</span><span class="close-btn" onclick="closeModal()">&times;</span></div>
+    <form onsubmit="alert('密码修改成功（模拟）');closeModal();return false;"><label>当前密码</label><input type="password" required><label>新密码</label><input type="password" required><label>确认新密码</label><input type="password" required><button class="submit" type="submit">提交</button></form>
+</div></div>
+
+<div id="modal-bind" class="modal"><div class="modal-content">
+    <div class="modal-head"><span class="zh">绑定手机/邮箱</span><span class="close-btn" onclick="closeModal()">&times;</span></div>
+    <form onsubmit="alert('绑定成功（模拟）');closeModal();return false;"><label>手机号</label><input required><label>邮箱</label><input type="email" required><button class="submit" type="submit">绑定</button></form>
+</div></div>
+
+<div id="modal-loginhist" class="modal"><div class="modal-content">
+    <div class="modal-head"><span class="zh">登录历史</span><span class="close-btn" onclick="closeModal()">&times;</span></div>
+    <table width="100%"><tr><th>日期</th><th>登录地点</th></tr><tr><td>正应元年八月二日</td><td>京师凡多万</td></tr><tr><td>正应元年八月四日</td><td>瀛凰特区</td></tr></table>
+</div></div>
+
+<script>
+/* ===== 工具 ===== */
+const $=s=>document.querySelector(s);
+function getParam(){
+    const p={};
+    location.search.slice(1).split('&').forEach(kv=>{
+        const [k,v]=kv.split('=');
+        p[k]=v?decodeURIComponent(v):'';
+    });
+    return p;
+}
+/* ===== 守门 + 赋值 ===== */
+const params=getParam();
+if(!params.token||!params.name){alert('请先登录');location.href='login.html';}
+else{
+    $('#currentUser').textContent=params.name;
+    $('#userName').textContent=params.name;
+    $('#userToken').textContent=params.token;
+}
+/* ===== 双语 ===== */
+function toggleLang(){
+    const isZh=$('html').lang!=='en';
+    document.querySelectorAll('.zh').forEach(e=>e.style.display=isZh?'none':'block');
+    document.querySelectorAll('.en').forEach(e=>e.style.display=isZh?'block':'none');
+    $('html').lang=isZh?'en':'zh';
+}
+/* ===== 板块 ===== */
+function showSec(id){
+    document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+    $('#'+id).classList.add('active');
+}
+/* ===== 签到 ===== */
+const todayKey='checkIn_'+new Date().toISOString().slice(0,10);
+function initCheck(){
+    const done=localStorage.getItem(todayKey);
+    const streak=localStorage.getItem('streakTotal')||'0';
+    $('#streak').textContent=streak;
+    if(done){$('#btn-check').disabled=true;$('#btn-check').textContent='已签到';$('#check-status').textContent='今日已签到';}
+}
+function doCheckIn(){
+    localStorage.setItem(todayKey,'1');
+    let total=parseInt(localStorage.getItem('streakTotal')||'0');
+    localStorage.setItem('streakTotal',total+1);
+    $('#streak').textContent=total+1;
+    $('#btn-check').disabled=true;$('#btn-check').textContent='已签到';
+    $('#check-status').textContent='签到成功！愿您今日极乐圆满。';
+}
+initCheck();
+/* ===== 头像 ===== */
+$('#avatarUpload').addEventListener('change',e=>{
+    const file=e.target.files[0];if(!file)return;
+    const reader=new FileReader();
+    reader.onload=ev=>{$('.avatar').style.backgroundImage=`url(${ev.target.result})`;localStorage.setItem('avatar',ev.target.result);}
+    reader.readAsDataURL(file);
+});
+/* ===== 编辑用户名 ===== */
+function editUserName(){
+    const name=prompt('新用户名',params.name);
+    if(name&&name.trim()){$('#userName').textContent=name;$('#currentUser').textContent=name;}
+}
+/* ===== 保存 ===== */
+function saveAccount(){
+    localStorage.setItem('nickname',$('#nickname').value);
+    localStorage.setItem('birthday',$('#birthday').value);
+    localStorage.setItem('bio',$('#bio').value);
+    alert('已保存（本地）');
+}
+function saveGeneral(){
+    localStorage.setItem('lang',$('#lang').value);
+    localStorage.setItem('theme',$('#theme').value);
+    localStorage.setItem('notify',$('#notify').checked);
+    alert('已保存（本地）');
+}
+function saveOther(){
+    localStorage.setItem('favorites',$('#favorites').value);
+    localStorage.setItem('notes',$('#notes').value);
+    localStorage.setItem('quickPhrase',$('#quickPhrase').value);
+    alert('已保存（本地）');
+}
+function exportData(){
+    const data={
+        account:{nickname:localStorage.getItem('nickname'),birthday:localStorage.getItem('birthday'),bio:localStorage.getItem('bio')},
+        general:{lang:localStorage.getItem('lang'),theme:localStorage.getItem('theme'),notify:localStorage.getItem('notify')},
+        other:{favorites:localStorage.getItem('favorites'),notes:localStorage.getItem('notes'),quickPhrase:localStorage.getItem('quickPhrase')}
+    };
+    const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download='myData.json';a.click();URL.revokeObjectURL(url);
+}
+function downloadCertificate(){
+    const cert={name:localStorage.getItem('nickname')||'用户',tokenId:'DLR-2025-0001',issuer:'中央制证发证总署',issueDate:'2025-01-01',expiryDate:'2034-01-01',permissions:'凡多、瀛凰、南极边区都护、如意路全域通行'};
+    const blob=new Blob([JSON.stringify(cert,null,2)],{type:'application/pdf'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download='certificate.json';a.click();URL.revokeObjectURL(url);
+}
+/* ===== 弹层 ===== */
+function openModal(id){$('#'+id).classList.add('show');}
+function closeModal(){document.querySelectorAll('.modal').forEach(m=>m.classList.remove('show'));}
+/* ===== 服务入口 ===== */
+function registerRenew(){openModal('modal-register');}
+function applySpecialAccess(){openModal('modal-special');}
+function viewHistory(){openModal('modal-history');}
+function onlineSupport(){openModal('modal-support');}
+function changePassword(){openModal('modal-changepwd');}
+function bindPhoneEmail(){openModal('modal-bind');}
+function viewLoginHistory(){openModal('modal-loginhist');}
+</script>
+</body>
+</html>
