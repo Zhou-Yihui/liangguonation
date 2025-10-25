@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>超宇宙文明 - 登录</title>
+    <style>
+        body{margin:0;font-family:Microsoft YaHei,serif;background:#cce7ff;}
+        .login-container{width:400px;margin:80px auto;padding:30px;background:#fff;border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,.08)}
+        .login-title{font-size:24px;text-align:center;margin-bottom:30px;color:#1d2129}
+        .form-group{margin-bottom:20px}
+        .form-group label{display:block;margin-bottom:8px;color:#4e5969;font-size:14px}
+        .form-control{width:100%;padding:12px 15px;border:1px solid #e5e6eb;border-radius:4px;font-size:16px;box-sizing:border-box}
+        .form-control:focus{outline:none;border-color:#165dff;box-shadow:0 0 0 2px rgba(22,93,255,.1)}
+        .submit-btn{width:100%;padding:12px;background:#165dff;color:#fff;border:none;border-radius:4px;font-size:16px;cursor:pointer;margin-top:10px}
+        .submit-btn:hover{background:#0e42d2}
+        .error-tip{color:#f53f3f;font-size:14px;text-align:center;margin-top:15px;display:none}
+        .back-home{text-align:center;margin-top:20px;font-size:14px}
+        .back-home a{color:#165dff;text-decoration:none}
+        .to-reg{text-align:center;margin-top:12px;font-size:14px}
+        .to-reg a{color:#165dff}
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h2 class="login-title">超宇宙文明 - 身份验证</h2>
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="token">通证编号</label>
+                <input type="text" class="form-control" id="token" placeholder="请输入通证编号" required>
+            </div>
+            <div class="form-group">
+                <label for="password">登录密码</label>
+                <input type="password" class="form-control" id="password" placeholder="请输入密码" required>
+            </div>
+            <button type="submit" class="submit-btn">立即登录</button>
+            <div class="error-tip" id="errorTip">通证编号或密码错误</div>
+        </form>
+        <div class="to-reg"><a href="register.html">→ 还没有账号？去注册</a></div>
+        <div class="back-home"><a href="index.html">返回官网首页</a></div>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const t = document.getElementById('token').value.trim();
+            const p = document.getElementById('password').value.trim();
+            if (!t || !p) return;
+
+            // 从本地“用户表”查找
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            const hit = users.find(u => u.token === t && u.pwd === p);
+
+            if (hit) {
+                /* ===== 必带参跳转 ===== */
+                location.href = 'my.html?token=' + encodeURIComponent(hit.token) +
+                                '&name=' + encodeURIComponent(hit.token); // 名字先用编号，可再扩展
+            } else {
+                const tip = document.getElementById('errorTip');
+                tip.style.display = 'block';
+                setTimeout(() => tip.style.display = 'none', 3000);
+            }
+        });
+    </script>
+</body>
+</html>
