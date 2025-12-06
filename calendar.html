@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>明华历 - 大凉国（单文件完整版）</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoi5piO5pif5LiyIC0g5pKS5piv5LqU5LqYIiwic2hvcnRfbmFtZSI6IuaYjuaXn+S4siIsInN0YXJ0X3VybCI6Ii8iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjMWExYTFhIiwidGhlbWVfY29sb3IiOiIjZDRmMWQ0IiwiaWNvbnMiOlt7InNyYyI6Ii8xNzY0NzUwODQyNTc1LnBuZyIsInNpemVzIjoiMTkyeDE5MiIsInR5cGUiOiJpbWFnZS9wbmcifSx7InNyYyI6Ii8xNzY0NzUwODQyNTc1LnBuZyIsInNpemVzIjoiNTEyeDUxMiIsInR5cGUiOiJpbWFnZS9wbmcifV19">
+  <style>
+    body{margin:0;font-family:system-ui;background:#1a1a1a;color:#d4f1d4;}
+    header{background:#d4f1d4;color:#1a1a1a;padding:1rem;text-align:center;}
+    .today-bar{background:#222;padding:0.5rem 1rem;text-align:center;font-size:1.1rem;position:sticky;top:0;z-index:20;}
+    .calendar-scroll{display:flex;gap:16px;padding:12px;overflow-x:auto;scroll-behavior:smooth;}
+    .year-col{min-width:320px;background:rgba(255,255,255,0.03);border-radius:8px;padding:8px;}
+    .year-head{background:#444;padding:0.6rem;text-align:center;font-size:1rem;border-radius:6px;margin-bottom:6px;}
+    .month-head{background:#333;padding:0.4rem;text-align:center;font-weight:bold;margin-top:0.6rem;border-radius:6px;}
+    .calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;padding:6px;margin-top:6px;}
+    .day{padding:6px;text-align:center;border-radius:6px;background:#222;min-height:64px;box-sizing:border-box;}
+    .day.today{background:#d4f1d4;color:#1a1a1a;font-weight:bold;}
+    .weekday{font-size:0.78rem;opacity:0.78;margin-top:4px;}
+    .small{font-size:0.72rem;opacity:0.85;}
+    .footer{padding:1rem;text-align:center;font-size:0.8rem;opacity:0.6;}
+    #a2hs-btn{position:fixed;bottom:20px;left:20px;padding:0.6rem 0.9rem;background:#d4f1d4;color:#1a1a1a;border:none;border-radius:8px;cursor:pointer;display:none;z-index:50;}
+  </style>
+</head>
+<body>
+  <header>明华历 - 大凉国（单文件完整版）</header>
+  <div class="today-bar" id="todayBar">加载中…</div>
+  <div style="display:flex;align-items:center;justify-content:center;margin-top:8px;">
+    <button id="prevYear" style="margin-right:12px;padding:6px 8px;border-radius:6px;background:#333;color:#d4f1d4;border:none;cursor:pointer;">◀ 上年</button>
+    <button id="nextYear" style="padding:6px 8px;border-radius:6px;background:#333;color:#d4f1d4;border:none;cursor:pointer;">下年 ▶</button>
+  </div>
+  <div class="calendar-scroll" id="calendar"></div>
+  <div class="footer">核心算法内置 · 无模块 · 双击即运行</div>
+  <button id="a2hs-btn">添加到主屏</button>
+
+  <script>
+    // ===== 内置核心（遵循你给的常量与数据） =====
+    const k = 0.8266;
+    const LTk = 172600;        // SI 秒 / 太辰日
+    const LY = 3248;           // 太辰日 / 明华年
+    const LM = 116;            // 标准太辰日 / 太辰月
+    const JD0 = 2092857.333;   // 原点儒略日（你给的）
+    const SEC_d = 86400;
+
+    // 今天你期望的明华国历（验证基准，不固定）
+    const EXPECTED_TODAY = { y: 1884, m: 3, d: 76 };
+
+    // 内置 slas（每月实长与 delta）
+    const slas1884 = [
+      { m: 1, real: 119, delta: 3, name: "启辰节" },
+      { m: 2, real: 114, delta: -2, name: "初曜节" },
+      { m: 3, real: 116, delta: 0, name: "望舒节" },
+      { m: 4, real: 120, delta: 4, name: "繁露节" },
+      { m: 5, real: 112, delta: -4, name: "芳华节" },
+      { m: 6, real: 117, delta: 1, name: "景明节" },
+      { m: 7, real: 115, delta: -1, name: "清辉节" },
+      { m: 8, real: 118, delta: 2, name: "昭光节" },
+      { m: 9, real: 116, delta: 0, name: "盛景节" },
+      { m: 10, real: 121, delta: 5, name: "宸极节" },
+      { m: 11, real: 111, delta: -5, name: "曦和节" },
+      { m: 12, real: 116, delta: 0, name: "嘉瑞节" },
+      { m: 13, real: 119, delta: 3, name: "澄明节" },
+      { m: 14, real: 113, delta: -3, name: "雅韵节" },
+      { m: 15, real: 117, delta: 1, name: "曜灵节" },
+      { m: 16, real: 116, delta: 0, name: "熙和节" },
+      { m: 17, real: 118, delta: 2, name: "炽烈节" },
+      { m: 18, real: 115, delta: -1, name: "静宁节" },
+      { m: 19, real: 116, delta: 0, name: "淳厚节" },
+      { m: 20, real: 120, delta: 4, name: "朗清节" },
+      { m: 21, real: 112, delta: -4, name: "寒素节" },
+      { m: 22, real: 116, delta: 0, name: "玄幽节" },
+      { m: 23, real: 119, delta: 3, name: "素洁节" },
+      { m: 24, real: 114, delta: -2, name: "皓洁节" },
+      { m: 25, real: 116, delta: 0, name: "靖安节" },
+      { m: 26, real: 117, delta: 1, name: "安泰节" },
+      { m: 27, real: 115, delta: -1, name: "宁和节" },
+      { m: 28, real: 116, delta: 0, name: "岁华节" }
+    ];
+
+    // 玄幻星象与方位（每天一星象、每天一方位）
+    const STARS = ["流光辰","紫曜星","苍穹轮","炽焰曜","明月镜","星隐轮","雾涌辰","银魄曜","风影星","幽冥轮","雷霆辰","玉衡星"];
+    const DIRS = ["东","南","西","北","中","上","下","东南","东北","西南","西北","上北","上南","上东","上西","下北","下南","下东","下西"];
+
+    // ===== 工具 — 公历 <-> 儒略日 =====
+    function dateToJD(date){
+      // date 是 JS Date (ms)
+      return date.getTime() / 86400000 + 2440587.5;
+    }
+    function jdToDate(jd){
+      return new Date((jd - 2440587.5) * 86400000);
+    }
+
+    // ===== 正算：国历 -> 儒略 -> 公历（已有，保持） =====
+    function mhToDtCount(y,m,d){
+      // Dt (太辰日计数) = (Y-1)*LY + (M-1)*LM + (D-1) - delta_of_month
+      const entry = slas1884[m-1];
+      const delta = entry ? entry.delta : 0;
+      return (y - 1) * LY + (m - 1) * LM + (d - 1) - delta;
+    }
+    function mhToGreg(y,m,d){
+      const Dt = mhToDtCount(y,m,d);
+      const jd = JD0 + Dt * LTk / SEC_d;
+      return jdToDate(jd);
+    }
+
+    // ===== 逆算：公历 -> 国历（核心） =====
+    function gregToMh(date){
+      // 1) 计算儒略日
+      const JD = dateToJD(date);
+      // 2) 秒差 -> 太辰日差 Dt_float
+      const Dt_float = (JD - JD0) * SEC_d / LTk; // 可能为大正数
+      // 3) 年序粗值
+      let Yp = Math.floor(Dt_float / LY) + 1;
+      if (Yp < 1) Yp = 1;
+      // 4) 剩余日 R
+      let R = Dt_float - (Yp - 1) * LY;
+      if (R < 0) R = 0;
+      // 5) 月序粗值
+      let Mp = Math.floor(R / LM) + 1;
+      if (Mp < 1) Mp = 1;
+      if (Mp > 28) Mp = 28;
+      // 6) 日序与小数部分
+      let r = R - (Mp - 1) * LM;
+      if (r < 0) r = 0;
+      let Dp = Math.floor(r) + 1;
+      let d_frac = r - Math.floor(r);
+      // 7) 补阙检索：取该月实际长度 L_real（用 slas1884 表的 real）
+      const L_real = slas1884[Mp - 1].real;
+      // 8) Δ阙 估算（按你给的算法四舍五入到 -5..+5）
+      let delta = Math.round(r - 115.5);
+      if (delta > 5) delta = 5;
+      if (delta < -5) delta = -5;
+      // 9) 根据 Δ阙 修正日序
+      let D = Dp + delta;
+      // 如果修正后超出当月实长或小于1，做“上去下延”调整
+      if (D < 1){
+        // 借上月
+        Mp -= 1;
+        if (Mp < 1){
+          // 借上一年最后月
+          Yp -= 1;
+          Mp = 28;
+        }
+        const L_prev = slas1884[Mp - 1].real;
+        D = L_prev + D; // 例如 D = -2 => lastMonthLength -2 +1 ...
+      } else if (D > L_real){
+        // 下月还日
+        D = D - L_real;
+        Mp += 1;
+        if (Mp > 28){
+          Mp = 1;
+          Yp += 1;
+        }
+      }
+      // 10) 最终输出
+      return {
+        y: Yp,
+        m: Mp,
+        d: D,
+        d_frac: d_frac
+      };
+    }
+
+    // ===== 辅助：侯与旬与星象方位换算 =====
+    function getHouAndXun(day){
+      const hou = Math.floor((day - 1) / 10) + 1; // 十日一侯
+      const xun = Math.floor((day - 1) / 39) + 1; // 三十九日一旬
+      const dayInHou = ((day - 1) % 10) + 1;
+      return { hou, xun, dayInHou };
+    }
+    function getStarDirByIndex(idx){
+      const star = STARS[idx % STARS.length];
+      const dir = DIRS[idx % DIRS.length];
+      return { star, dir };
+    }
+
+    // ===== 渲染日历 UI（横向单年显示，月份列） =====
+    let centerYear = EXPECTED_TODAY.y; // 初始化以你所需的年为中心
+
+    function renderCalendar(yearToShow=centerYear){
+      const cal = document.getElementById('calendar');
+      cal.innerHTML = '';
+      // 我们渲染三列：上一年，本年，下一年，便于左右看
+      for (let y = yearToShow - 1; y <= yearToShow + 1; y++){
+        const col = document.createElement('div');
+        col.className = 'year-col';
+        const head = document.createElement('div');
+        head.className = 'year-head';
+        head.textContent = `国历 ${y} 年`;
+        col.appendChild(head);
+
+        for (let m = 1; m <= 28; m++){
+          const mhEntry = slas1884[m-1];
+          const monthHead = document.createElement('div');
+          monthHead.className = 'month-head';
+          monthHead.textContent = `${m} 月 — ${mhEntry.name}（${mhEntry.real}日）`;
+          col.appendChild(monthHead);
+
+          const grid = document.createElement('div');
+          grid.className = 'calendar-grid';
+
+          const days = mhEntry.real;
+          for (let d = 1; d <= days; d++){
+            const cell = document.createElement('div');
+            cell.className = 'day';
+            // 计算对应公历用于显示参考（正算）
+            const gDate = mhToGreg(y,m,d);
+            // 侯旬
+            const { hou, xun, dayInHou } = getHouAndXun(d);
+            // 星象/方位：用稳态索引而不是每次随机（方便一致性）
+            const idx = ( (y*10000) + (m*100) + d );
+            const { star, dir } = getStarDirByIndex(idx);
+            // 判断今天
+            const nowMh = gregToMh(new Date());
+            if (nowMh.y === y && nowMh.m === m && nowMh.d === d){
+              cell.classList.add('today');
+            }
+            cell.innerHTML = `<div style="font-weight:600">${d} 日</div>
+                              <div class="weekday small">${hou}侯 · 第 ${dayInHou} 日</div>
+                              <div class="weekday small">旬：${xun}</div>
+                              <div class="weekday small">${star} · ${dir}</div>
+                              <div class="weekday small">公历：${gDate.toISOString().slice(0,10)}</div>`;
+            grid.appendChild(cell);
+          }
+          col.appendChild(grid);
+        }
+
+        cal.appendChild(col);
+      }
+    }
+
+    // ===== 今日栏（动态时分秒由 d_frac 转换） =====
+    function updateTodayBar(){
+      const now = new Date();
+      const mh = gregToMh(now);
+      // d_frac -> 当日内时间（用 LTk/SEC_d 的精度）
+      // 计算完整 Dt_float to get fractional day precisely:
+      const JD = dateToJD(now);
+      const Dt_float = (JD - JD0) * SEC_d / LTk;
+      const Dt_floor = Math.floor(Dt_float);
+      const r = Dt_float - Dt_floor; // fractional ta-cheng day
+      // Convert fractional ta-cheng day to hours/min/sec in 太辰日 (58小时)
+      const totalHours = r * (LTk / 3600); // seconds per Ta-day -> hours
+      // But safer: 太辰日长度 = LTk seconds = LTk/3600 hours
+      const ta_hours = totalHours;
+      const hour = Math.floor(ta_hours);
+      const minute = Math.floor((ta_hours - hour) * 60);
+      const second = Math.floor((((ta_hours - hour) * 60) - minute) * 60);
+      const { hou, xun, dayInHou } = getHouAndXun(mh.d);
+      // star/dir stable via index
+      const idx = ((mh.y*10000) + (mh.m*100) + mh.d);
+      const { star, dir } = getStarDirByIndex(idx);
+      document.getElementById('todayBar').textContent =
+        `今天：国历 ${mh.y} 年 ${mh.m} 月 ${mh.d} 日　` +
+        `${xun}旬 ${hou}侯 第${dayInHou}日　` +
+        `${star} · ${dir}　` +
+        `时刻（太辰时） ${String(hour).padStart(2,'0')}:${String(minute).padStart(2,'0')}:${String(second).padStart(2,'0')} 　` +
+        `公历参考：${now.toISOString().slice(0,10)}`;
+    }
+
+    // ===== 翻年交互 =====
+    document.getElementById('prevYear').addEventListener('click', () => {
+      centerYear -= 1;
+      renderCalendar(centerYear);
+    });
+    document.getElementById('nextYear').addEventListener('click', () => {
+      centerYear += 1;
+      renderCalendar(centerYear);
+    });
+
+    // ===== PWA 添加到主屏（手动触发） =====
+    let deferredPrompt = null;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      const btn = document.getElementById('a2hs-btn');
+      btn.style.display = 'block';
+    });
+    document.getElementById('a2hs-btn').addEventListener('click', async () => {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      const choice = await deferredPrompt.userChoice;
+      deferredPrompt = null;
+      document.getElementById('a2hs-btn').style.display = 'none';
+      console.log('用户选择：', choice.outcome);
+    });
+
+    // ===== 初始化与定时刷新 =====
+    function init(){
+      // 初始渲染：以 EXPECTED_TODAY.y 为中心，保证用户看到期望年
+      centerYear = EXPECTED_TODAY.y;
+      renderCalendar(centerYear);
+      updateTodayBar();
+      // 每秒刷新今日栏（时分秒）与日历上的“today”高亮
+      setInterval(()=>{
+        updateTodayBar();
+        // 只需重新调整今天高亮，不重建全部 DOM（简单粗暴方案：重渲染年列）
+        // 为避免闪烁，这里只在天变时重渲染（检查 day）
+        const now = new Date();
+        const mh = gregToMh(now);
+        // 如果 centerYear 包含 mh.y，更新日历高亮（简单方式：完全重渲染当前三列）
+        renderCalendar(centerYear);
+      }, 1000);
+    }
+
+    // run
+    init();
+
+    // Expose functions for quick console check
+    window.mhToGreg = mhToGreg;
+    window.gregToMh = gregToMh;
+    window.mhConstants = { k, LTk, LY, LM, JD0, SEC_d, slas1884 };
+  </script>
+</body>
+</html>
