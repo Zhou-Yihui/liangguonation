@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>SCMS - 发件箱</title>
+<style>
+body{font-family:"Microsoft YaHei";background:#0b0c2a;color:#fff;padding:20px;}
+button{background:#f0c000;border:none;padding:8px 15px;border-radius:5px;cursor:pointer;margin-bottom:10px;}
+.mail{padding:8px;border-bottom:1px solid #333;cursor:pointer;}
+.mail:hover{background:#222;}
+textarea{width:100%;height:120px;background:#111;color:#fff;border:none;border-radius:5px;margin-top:10px;}
+</style>
+<script>
+  (function(){
+    if(!localStorage.getItem("SCMS-currentUser")) location.replace('email.html');
+  })();
+</script>
+</head>
+<body>
+<h2>📤 发件箱 / Sent</h2>
+<button onclick="location.href='home.html'">返回主页 / Home</button>
+<div id="list"></div>
+<textarea id="content" readonly placeholder="邮件内容"></textarea>
+
+<script>
+const u = localStorage.getItem("SCMS-currentUser");
+const users = JSON.parse(localStorage.getItem("SCMS-users") || "{}");
+const mails = users[u]?.sent || [];
+const list = document.getElementById("list");
+const content = document.getElementById("content");
+
+if (mails.length) {
+  list.innerHTML = mails.map((m, i) => `
+    <div class='mail' onclick='openMail(${i})'>
+      发给 <b>${m.to}</b>：${m.subject}
+    </div>`).join("");
+} else {
+  list.innerHTML = "<div style='color:#888'>暂无邮件</div>";
+}
+
+function openMail(i) {
+  content.value = mails[i].content;
+}
+</script>
+</body>
+</html>

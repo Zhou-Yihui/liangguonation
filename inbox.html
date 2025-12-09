@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>SCMS - 收件箱</title>
+<style>
+body{font-family:"Microsoft YaHei",sans-serif;background:#0b0c2a;color:#fff;margin:0;}
+header{background:rgba(255,255,255,.05);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;}
+header button{padding:6px 14px;border:none;border-radius:5px;background:#f0c000;color:#000;cursor:pointer;}
+#list{padding:15px;}
+.mail{padding:8px 5px;border-bottom:1px solid #333;cursor:pointer;}
+.mail:hover{background:#222;}
+textarea{width:100%;height:130px;background:#111;color:#fff;border:none;border-radius:5px;margin-top:10px;resize:vertical;}
+.empty{color:#888;text-align:center;margin-top:30px;}
+</style>
+<script>(()=>{if(!localStorage.getItem("SCMS-currentUser"))location.replace('email.html');})();</script>
+</head>
+<body>
+<header>
+  <span>📥 收件箱 / Inbox</span>
+  <button onclick="location.href='home.html'">返回主页</button>
+</header>
+
+<div id="list"></div>
+<textarea id="content" readonly placeholder="邮件内容"></textarea>
+
+<script>
+const u = localStorage.getItem("SCMS-currentUser");
+const users = JSON.parse(localStorage.getItem("SCMS-users") || "{}");
+const mails = users[u]?.inbox || [];
+
+const listBox = document.getElementById('list');
+const contentBox = document.getElementById('content');
+
+if(mails.length){
+  listBox.innerHTML = mails.map((m,i)=>`
+    <div class="mail" onclick="contentBox.value = mails[${i}].content">
+      来自 ${m.from}：${m.subject}
+    </div>`).join("");
+}else{
+  listBox.innerHTML = '<div class="empty">暂无邮件</div>';
+}
+</script>
+</body>
+</html>

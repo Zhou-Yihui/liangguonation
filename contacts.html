@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>SCMS - 通讯录</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    :root {
+      --bg: #0b0c2a;
+      --fg: #fff;
+      --card: rgba(255, 255, 255, 0.08);
+      --accent: #f0c000;
+    }
+    body.light {
+      --bg: #f5f5f5;
+      --fg: #111;
+      --card: rgba(0, 0, 0, 0.05);
+    }
+    body {
+      font-family: "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    header {
+      height: 56px;
+      background: var(--card);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      justify-content: space-between;
+    }
+    main {
+      flex: 1;
+      padding: 20px;
+    }
+    .contacts-container {
+      display: flex;
+    }
+    .contacts-sidebar {
+      width: 220px;
+      background: var(--card);
+      padding: 20px;
+      border-radius: 0 6px 6px 0;
+    }
+    .contacts-sidebar a {
+      display: block;
+      padding: 10px;
+      color: var(--fg);
+      text-decoration: none;
+      border-radius: 4px;
+      margin-bottom: 5px;
+    }
+    .contacts-sidebar a.active {
+      background: rgba(255, 255, 255, 0.1);
+    }
+    .contacts-content {
+      flex: 1;
+      padding: 20px;
+    }
+    .contacts-card {
+      background: var(--card);
+      border-radius: 6px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .contacts-section {
+      margin-bottom: 30px;
+    }
+    .contacts-section h3 {
+      margin-top: 0;
+      margin-bottom: 15px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 10px;
+    }
+    .contacts-form-group {
+      margin-bottom: 15px;
+    }
+    .contacts-form-group label {
+      display: block;
+      margin-bottom: 5px;
+    }
+    .contacts-form-group input,
+    .contacts-form-group textarea {
+      width: 100%;
+      padding: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      border-radius: 4px;
+      color: var(--fg);
+    }
+    .contacts-form-group textarea {
+      height: 100px;
+      resize: vertical;
+    }
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #000;
+    }
+    .btn-outline {
+      background: transparent;
+      color: var(--accent);
+      border: 1px solid var(--accent);
+    }
+    .contact-list {
+      list-style-type: none;
+      padding: 0;
+    }
+    .contact-list li {
+      padding: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .contact-list li:last-child {
+      border-bottom: none;
+    }
+    .contact-actions button {
+      background: transparent;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      padding: 4px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-left: 5px;
+    }
+    footer {
+      padding: 15px;
+      text-align: center;
+      font-size: 12px;
+      color: #aaa;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <span><i class="fa fa-address-book"></i> 通讯录</span>
+    <button id="themeBtn" onclick="toggleTheme()" style="border: 1px solid var(--accent); background: transparent; color: var(--accent); padding: 5px 10px; border-radius: 4px; cursor: pointer;">🌓 主题</button>
+  </header>
+  <main>
+    <div class="contacts-container">
+      <div class="contacts-sidebar">
+        <a href="#" class="active"><i class="fa fa-users"></i> 好友列表</a>
+        <a href="#"><i class="fa fa-user-plus"></i> 添加好友</a>
+        <a href="#"><i class="fa fa-bell"></i> 好友申请</a>
+        <a href="#"><i class="fa fa-users-cog"></i> 群组管理</a>
+      </div>
+      <div class="contacts-content">
+        <div class="contacts-card">
+          <h3>好友列表</h3>
+          <ul class="contact-list" id="friendList">
+            <!-- 好友列表将通过 JavaScript 动态生成 -->
+          </ul>
+        </div>
+        <div class="contacts-card">
+          <h3>添加好友</h3>
+          <div class="contacts-section">
+            <div class="contacts-form-group">
+              <label for="friendEmail">好友邮箱</label>
+              <input type="email" id="friendEmail" placeholder="输入好友的邮箱地址">
+            </div>
+            <div class="contacts-form-group">
+              <label for="addMessage">申请信息（可选）</label>
+              <textarea id="addMessage" placeholder="你好，我想添加你为好友"></textarea>
+            </div>
+            <button class="btn btn-primary" onclick="sendFriendRequest()">发送好友申请</button>
+          </div>
+        </div>
+        <div class="contacts-card">
+          <h3>好友申请</h3>
+          <ul class="contact-list" id="requestList">
+            <!-- 好友申请列表将通过 JavaScript 动态生成 -->
+          </ul>
+        </div>
+        <div class="contacts-card">
+          <h3>群组管理</h3>
+          <div class="contacts-section">
+            <div class="contacts-form-group">
+              <label for="groupName">群组名称</label>
+              <input type="text" id="groupName" placeholder="输入群组名称">
+            </div>
+            <div class="contacts-form-group">
+              <label for="groupDescription">群组描述（可选）</label>
+              <textarea id="groupDescription" placeholder="输入群组描述"></textarea>
+            </div>
+            <button class="btn btn-primary" onclick="createGroup()">创建群组</button>
+          </div>
+          <ul class="contact-list" id="groupList">
+            <!-- 群组列表将通过 JavaScript 动态生成 -->
+          </ul>
+        </div>
+      </div>
+    </div>
+  </main>
+  <footer>
+    <p>© 2024 StarGate Civilization Mail System</p>
+  </footer>
+
+  <script>
+    function toggleTheme() {
+      document.body.classList.toggle('light');
+      localStorage.setItem('SCMS-theme', document.body.classList.contains('light') ? 'light' : 'dark');
+    }
+    (function() {
+      if(localStorage.getItem('SCMS-theme') === 'light') {
+        document.body.classList.add('light');
+      }
+    })();
+    const u = localStorage.getItem('SCMS-currentUser');
+    let contacts = JSON.parse(localStorage.getItem('SCMS-contacts') || '{}');
+    if (!contacts[u]) {
+      contacts[u] = { friends: [], requests: [], groups: [] };
+    }
+
+    function saveContacts() {
+      localStorage.setItem('SCMS-contacts', JSON.stringify(contacts));
+    }
+
+    function renderFriendList() {
+      const friendList = document.getElementById('friendList');
+      friendList.innerHTML = contacts[u].friends.map(friend => `
+        <li>
+          <span>${friend.email}</span>
+          <div class="contact-actions">
+            <button onclick="removeFriend('${friend.email}')">删除</button>
+          </div>
+        </li>
+      `).join('');
+    }
+
+    function renderRequestList() {
+      const requestList = document.getElementById('requestList');
+      requestList.innerHTML = contacts[u].requests.map(request => `
+        <li>
+          <span>${request.from}</span>
+          <div class="contact-actions">
+            <button onclick="acceptRequest('${request.from}')">接受</button>
+            <button onclick="rejectRequest('${request.from}')">拒绝</button>
+          </div>
+        </li>
+      `).join('');
+    }
+
+    function renderGroupList() {
+      const groupList = document.getElementById('groupList');
+      groupList.innerHTML = contacts[u].groups.map(group => `
+        <li>
+          <span>${group.name}</span>
+          <div class="contact-actions">
+            <button onclick="viewGroup('${group.id}')">查看</button>
+            <button onclick="removeGroup('${group.id}')">删除</button>
+          </div>
+        </li>
+      `).join('');
+    }
+
+    function sendFriendRequest() {
+      const friendEmail = document.getElementById('friendEmail').value.trim();
+      const addMessage = document.getElementById('addMessage').value.trim();
+      if (!friendEmail) return;
+
+      const users = JSON.parse(localStorage.getItem('SCMS-users') || '{}');
+      if (!users[friendEmail.split('@')[0]]) {
+        alert('该用户不存在！');
+        return;
+      }
+
+      const request = {
+        from: u + '@lyurchxieria.com',
+        message: addMessage,
+        date: new Date().toISOString()
+      };
+
+      if (!contacts[friendEmail.split('@')[0]]) {
+        contacts[friendEmail.split('@')[0]] = { friends: [], requests: [], groups: [] };
+      }
+      contacts[friendEmail.split('@')[0]].requests.push(request);
+      saveContacts();
+      alert('好友申请已发送！');
+    }
+
+    function acceptRequest(from) {
+      const requestemail = contacts[u].requests.findemail(req => req.from === from);
+      if (requestemail === -1) return;
+
+      const friendEmail = from;
+      contacts[u].friends.push({ email: friendEmail, added: new Date().toISOString() });
+      contacts[u].requests.splice(requestemail, 1);
+      saveContacts();
+      renderFriendList();
+      renderRequestList();
+      alert('已接受好友申请！');
+    }
+
+    function rejectRequest(from) {
+      const requestemail = contacts[u].requests.findemail(req => req.from === from);
+      if (requestemail === -1) return;
+
+      contacts[u].requests.splice(requestemail, 1);
+      saveContacts();
+      renderRequestList();
+      alert('已拒绝好友申请！');
+    }
+
+    function removeFriend(email) {
+      const friendemail = contacts[u].friends.findemail(friend => friend.email === email);
+      if (friendemail === -1) return;
+
+      contacts[u].friends.splice(friendemail, 1);
+      saveContacts();
+      renderFriendList();
+      alert('已删除好友！');
+    }
+
+    function createGroup() {
+      const groupName = document.getElementById('groupName').value.trim();
+      const groupDescription = document.getElementById('groupDescription').value.trim();
+      if (!groupName) return;
+
+      const groupId = 'group_' + Date.now();
+      const group = {
+        id: groupId,
+        name: groupName,
+        description: groupDescription,
+        members: [u + '@lyurchxieria.com'],
+        created: new Date().toISOString()
+      };
+
+      contacts[u].groups.push(group);
+      saveContacts();
+      renderGroupList();
+      alert('群组创建成功！');
+    }
+
+    function viewGroup(groupId) {
+      const group = contacts[u].groups.find(g => g.id === groupId);
+      if (!group) return;
+
+      alert(`群组名称: ${group.name}\n描述: ${group.description || '无'}\n成员: ${group.members.join(', ')}`);
+    }
+
+    function removeGroup(groupId) {
+      const groupemail = contacts[u].groups.findemail(g => g.id === groupId);
+      if (groupemail === -1) return;
+
+      contacts[u].groups.splice(groupemail, 1);
+      saveContacts();
+      renderGroupList();
+      alert('已删除群组！');
+    }
+
+    renderFriendList();
+    renderRequestList();
+    renderGroupList();
+  </script>
+</body>
+</html>

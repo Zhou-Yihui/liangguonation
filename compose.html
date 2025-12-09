@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>SCMS - 写信</title>
+  <style>
+    body{font-family:"Microsoft YaHei",sans-serif;background:#0b0c2a;color:#fff;margin:0;}
+    header{background:rgba(255,255,255,.05);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;}
+    header button{padding:6px 14px;border:none;border-radius:5px;background:#f0c000;color:#000;cursor:pointer;margin-left:8px;}
+    h1{margin:20px;text-align:center;}
+    #compose{width:90%;max-width:600px;margin:auto;display:flex;flex-direction:column;gap:10px;}
+    input,textarea{width:100%;padding:8px;border-radius:5px;border:none;background:#111;color:#fff;}
+    textarea{height:140px;resize:vertical;}
+    #sendBtn{background:#f0c000;color:#000;font-weight:bold;cursor:pointer;padding:10px;}
+    #sendBtn:hover{background:#ffd700;}
+    #msg{color:#ff9;margin-top:8px;text-align:center;}
+  </style>
+  <script>(()=>{if(!localStorage.getItem("SCMS-currentUser"))location.replace('email.html');})();</script>
+</head>
+<body>
+<header>
+  <span>✉️ 写信 / Compose</span>
+  <div>
+    <button onclick="loc('inbox.html')">📥 收件箱</button>
+    <button onclick="loc('sent.html')">📤 发件箱</button>
+    <button onclick="logout()">退出</button>
+  </div>
+</header>
+
+<div id="compose">
+  <input id="to" placeholder="收件人邮箱 / To">
+  <input id="subject" placeholder="主题 / Subject">
+  <textarea id="body" placeholder="正文 / Message"></textarea>
+  <button id="sendBtn" onclick="sendMail()">发送邮件</button>
+  <div id="msg"></div>
+</div>
+
+<script>
+const u = localStorage.getItem("SCMS-currentUser");
+function loc(p){location.href=p;}
+function logout(){
+  localStorage.removeItem("SCMS-currentUser");
+  location.href='email.html';
+}
+
+function sendMail(){
+  const to    = document.getElementById('to').value.trim();
+  const subj  = document.getElementById('subject').value.trim();
+  const body  = document.getElementById('body').value.trim();
+  if(!to||!subj||!body) return msg('请填写完整！');
+
+  const users = JSON.parse(localStorage.getItem("SCMS-users")||"{}");
+  if(!users[to]) return msg('收件人不存在！');
+
+  function sendMail(){
+  const to    = document.getElementById('to').value.trim();
+  const subj  = document.getElementById('subject').value.trim();
+  const body  = document.getElementById('body').value.trim();
+  if(!to||!subj||!body) return msg('请填写完整！');
+
+  const users = JSON.parse(localStorage.getItem("SCMS-users")||"{}");
+  if(!users[to]) return msg('收件人不存在！');
+
+  const mail = {
+    from: u + '@lyurchxieria.com', // 在这里拼接域名
+    to: to + '@lyurchxieria.com', // 如果收件人也需要完整域名，也在这里拼接
+    subject: subj,
+    content: body,
+    date: Date.now()
+  };
+  users[to].inbox.push(mail);
+  users[u].sent.push(mail);
+  localStorage.setItem("SCMS-users", JSON.stringify(users));
+
+  msg('发送成功！');
+  setTimeout(()=>location.href='sent.html', 800);   // 自动跳转发件箱
+}
+
+  msg('发送成功！');
+  setTimeout(()=>location.href='sent.html', 800);   // 自动跳转发件箱
+}
+function msg(t){document.getElementById('msg').textContent=t;}
+</script>
+</body>
+</html>

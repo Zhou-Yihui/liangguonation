@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>SCMS - 设置</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        :root {
+            --bg: #0b0c2a;
+            --fg: #fff;
+            --card: rgba(255, 255, 255, 0.08);
+            --accent: #f0c000;
+        }
+        body.light {
+            --bg: #f5f5f5;
+            --fg: #111;
+            --card: rgba(0, 0, 0, 0.05);
+        }
+        body {
+            font-family: "Microsoft YaHei", sans-serif;
+            background: var(--bg);
+            color: var(--fg           );
+ margin: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        header {
+            height: 56px;
+            background: var(--card);
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        main {
+            flex: 1;
+            padding: 20px;
+        }
+        .settings-container {
+            display: flex;
+        }
+        .settings-sidebar {
+            width: 220px;
+            background: var(--card);
+            padding: 20px;
+            border-radius: 0 6px 6px 0;
+        }
+        .settings-sidebar a {
+            display: block;
+            padding: 10px;
+            color: var(--fg);
+            text-decoration: none;
+            border-radius: 4px;
+            margin-bottom: 5px;
+        }
+        .settings-sidebar a.active {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .settings-content {
+            flex: 1;
+            padding: 20px;
+        }
+        .settings-card {
+            background: var(--card);
+            border-radius: 6px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .settings-section {
+            margin-bottom: 30px;
+        }
+        .settings-section h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 10px;
+        }
+        .settings-form-group {
+            margin-bottom: 15px;
+        }
+        .settings-form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .settings-form-group input,
+        .settings-form-group textarea {
+            width: 100%;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 4px;
+            color: var(--fg);
+        }
+        .settings-form-group textarea {
+            height: 100px;
+            resize: vertical;
+        }
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .btn-primary {
+            background: var(--accent);
+            color: #000;
+        }
+        .btn-outline {
+            background: transparent;
+            color: var(--accent);
+            border: 1px solid var(--accent);
+        }
+        footer {
+            padding: 15px;
+            text-align: center;
+            font-size: 12px;
+            color: #aaa;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <span><i class="fa fa-cog"></i> 系统设置</span>
+        <button id="themeBtn" onclick="toggleTheme()" style="border: 1px solid var(--accent); background: transparent; color: var(--accent); padding: 5px 10px; border-radius: 4px; cursor: pointer;">🌓 主题</button>
+    </header>
+    <main>
+        <div class="settings-container">
+            <div class="settings-sidebar">
+                <a href="#" class="active"><i class="fa fa-envelope"></i> 邮箱设置</a>
+                <a href="#"><i class="fa fa-api"></i> API 配置</a>
+                <a href="#"><i class="fa fa-dns"></i> DNS 设置</a>
+                <a href="#"><i class="fa fa-shield-alt"></i> 安全设置</a>
+                <a href="#"><i class="fa fa-palette"></i> 个性化</a>
+            </div>
+            <div class="settings-content">
+                <div class="settings-card">
+                    <h3>邮箱设置</h3>
+                    <div class="settings-section">
+                        <div class="settings-form-group">
+                            <label for="emailUsername">邮箱用户名</label>
+                            <input type="text" id="emailUsername" placeholder="例如：yourname" style="width: 300px;">
+                            <p>@lyurchxieria.com</p>
+                        </div>
+                        <div class="settings-form-group">
+                            <label for="currentPassword">当前密码</label>
+                            <input type="password" id="currentPassword" placeholder="输入当前密码">
+                        </div>
+                        <div class="settings-form-group">
+                            <label for="newPassword">新密码（可选）</label>
+                            <input type="password" id="newPassword" placeholder="输入新密码">
+                        </div>
+                        <div class="settings-form-group">
+                            <label for="confirmPassword">确认新密码（可选）</label>
+                            <input type="password" id="confirmPassword" placeholder="确认新密码">
+                        </div>
+                        <button class="btn btn-primary" onclick="saveEmailSettings()">保存邮箱设置</button>
+                    </div>
+                </div>
+
+                <div class="settings-card">
+                    <h3>API 配置</h3>
+                    <div class="settings-section">
+                        <div class="settings-form-group">
+                            <label for="apiUrl">API URL</label>
+                            <input type="text" id="apiUrl" value="https://api.lyurchxieria.com/v1" readonly>
+                            <small>当前 API 版本：v1.3.7</small>
+                        </div>
+                        <div class="settings-form-group">
+                            <label for="apiKey">API 密钥</label>
+                            <input type="text" id="apiKey" value="sk-1234567890abcdef" readonly>
+                            <button class="btn btn-outline" style="margin-top: 5px;">复制</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-card">
+                    <h3>DNS 设置</h3>
+                    <div class="settings-section">
+                        <div class="settings-form-group">
+                            <label for="domain">域名</label>
+                            <input type="text" id="domain" value="lyurchxieria.com" readonly>
+                        </div>
+                        <div class="settings-form-group">
+                            <label>MX 记录</label>
+                            <textarea readonly>@lyurchxieria.com MX 记录配置如下：
+10 mx1.lyurchxieria.com
+20 mx2.lyurchxieria.com</textarea>
+                            <small>确保您的域名提供商已正确配置这些记录</small>
+                        </div>
+                        <div class="settings-form-group">
+                            <label>TXT 记录（用于 SPF）</label>
+                            <textarea readonly>v=spf1 include:_spf.lyurchxieria.com -all</textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <footer>
+        <p>© 2024 StarGate Civilization Mail System</p>
+    </footer>
+
+    <script>
+        function toggleTheme() {
+            document.body.classList.toggle('light');
+            localStorage.setItem('SCMS-theme', document.body.classList.contains('light') ? 'light' : 'dark');
+        }
+        (function() {
+            if(localStorage.getItem('SCMS-theme') === 'light') {
+                document.body.classList.add('light');
+            }
+        })();
+        function saveEmailSettings() {
+            // 这里添加保存邮箱设置的逻辑
+            alert('邮箱设置已保存！');
+        }
+    </script>
+</body>
+</html>

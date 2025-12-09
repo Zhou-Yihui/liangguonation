@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>SCMS - 草稿</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        :root {
+            --bg: #0b0c2a;
+            --fg: #fff;
+            --card: rgba(255, 255, 255, 0.08);
+            --accent: #f0c000;
+        }
+        body.light {
+            --bg: #f5f5f5;
+            --fg: #111;
+            --card: rgba(0, 0, 0, 0.05);
+        }
+        body {
+            font-family: "Microsoft YaHei", sans-serif;
+            background: var(--bg);
+            color: var(--fg);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        header {
+            height: 56px;
+            background: var(--card);
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            justify-content: space-between;
+        }
+        main {
+            flex: 1;
+            padding: 20px;
+        }
+        .draft-container {
+            display: flex;
+        }
+        .draft-sidebar {
+            width: 220px;
+            background: var(--card);
+            padding: 20px;
+            border-radius: 0 6px 6px 0;
+        }
+        .draft-sidebar a {
+            display: block;
+            padding: 10px;
+            color: var(--fg);
+            text-decoration: none;
+            border-radius: 4px;
+            margin-bottom: 5px;
+        }
+        .draft-sidebar a.active {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .draft-content {
+            flex: 1;
+            padding: 20px;
+        }
+        .draft-card {
+            background: var(--card);
+            border-radius: 6px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .draft-section {
+            margin-bottom: 30px;
+        }
+        .draft-section h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 10px;
+        }
+        .draft-form-group {
+            margin-bottom: 15px;
+        }
+        .draft-form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .draft-form-group input,
+        .draft-form-group textarea {
+            width: 100%;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 4px;
+            color: var(--fg);
+        }
+        .draft-form-group textarea {
+            height: 100px;
+            resize: vertical;
+        }
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .btn-primary {
+            background: var(--accent);
+            color: #000;
+        }
+        .btn-outline {
+            background: transparent;
+            color: var(--accent);
+            border: 1px solid var(--accent);
+        }
+        footer {
+            padding: 15px;
+            text-align: center;
+            font-size: 12px;
+            color: #aaa;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <span><i class="fa fa-file-alt"></i> 草稿</span>
+        <button id="themeBtn" onclick="toggleTheme()" style="border: 1px solid var(--accent); background: transparent; color: var(--accent); padding: 5px 10px; border-radius: 4px; cursor: pointer;">🌓 主题</button>
+    </header>
+    <main>
+        <div class="draft-container">
+            <div class="draft-sidebar">
+                <a href="inbox.html"><i class="fa fa-inbox"></i> 收件箱</a>
+                <a href="sent.html"><i class="fa fa-paper-plane"></i> 发件箱</a>
+                <a href="compose.html"><i class="fa fa-edit"></i> 写信</a>
+                <a href="draft.html" class="active"><i class="fa fa-file-alt"></i> 草稿</a>
+                <a href="spam.html"><i class="fa fa-exclamation-triangle"></i> 垃圾邮件</a>
+                <a href="trash.html"><i class="fa fa-trash"></i> 已删除</a>
+                <a href="contacts.html"><i class="fa fa-address-book"></i> 通讯录</a>
+                <a href="settings.html"><i class="fa fa-cog"></i> 设置</a>
+            </div>
+            <div class="draft-content">
+                <div class="draft-card">
+                    <h3>草稿列表</h3>
+                    <div id="draftList"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <footer>
+        <p>© 2024 StarGate Civilization Mail System</p>
+    </footer>
+
+    <script>
+        function toggleTheme() {
+            document.body.classList.toggle('light');
+            localStorage.setItem('SCMS-theme', document.body.classList.contains('light') ? 'light' : 'dark');
+        }
+        (function() {
+            if(localStorage.getItem('SCMS-theme') === 'light') {
+                document.body.classList.add('light');
+            }
+        })();
+        const u = localStorage.getItem('SCMS-currentUser');
+        const draftList = document.getElementById('draftList');
+        const drafts = JSON.parse(localStorage.getItem('SCMS-drafts-' + u) || '[]');
+        draftList.innerHTML = drafts.map((draft, email) => `
+            <div class="draft-item" onclick="editDraft(${email})">
+                <div>${draft.subject}</div>
+                <div style="color:#888;">${draft.to}</div>
+            </div>
+        `).join('');
+        function editDraft(email) {
+            const draft = drafts[email];
+            localStorage.setItem('SCMS-editDraft', JSON.stringify(draft));
+            location.href = 'compose.html';
+        }
+    </script>
+</body>
+</html>

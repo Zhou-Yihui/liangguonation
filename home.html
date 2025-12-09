@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>SCMS - 主页</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    :root{--bg:#0b0c2a;--fg:#fff;--card:rgba(255,255,255,.08);--accent:#f0c000;}
+    body.light{--bg:#f5f5f5;--fg:#111;--card:rgba(0,0,0,.05);}
+    body{margin:0;background:var(--bg);color:var(--fg);font-family:Microsoft YaHei;display:flex;flex-direction:column;min-height:100vh;}
+    header{height:56px;background:var(--card);display:flex;align-items:center;padding:0 20px;justify-content:space-between;}
+    main{display:flex;flex:1;overflow:hidden;}aside{width:220px;background:var(--card);padding:10px;display:flex;flex-direction:column;gap:8px;font-size:14px;}
+    aside a{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-radius:6px;text-decoration:none;color:var(--fg);}
+    aside a:hover{background:rgba(255,255,255,.1);}aside .badge{background:var(--accent);color:#000;font-size:12px;padding:2px 6px;border-radius:10px;}
+    #content{flex:1;padding:20px;}#themeBtn{border:1px solid var(--accent);color:var(--accent);background:0 0;padding:4px 10px;border-radius:4px;cursor:pointer;}
+    #capacityBar{height:6px;background:rgba(255,255,255,.2);border-radius:3px;margin-top:6px;overflow:hidden;}#capacityUsed{height:100%;background:var(--accent);width:0%;}
+    #mailList{display:flex;flex-direction:column;gap:8px;}.mail{padding:10px;background:var(--card);border-radius:6px;cursor:pointer;}.mail:hover{background:rgba(255,255,255,.1);}
+    footer{padding:15px;text-align:center;font-size:12px;color:#aaa;}
+  </style>
+</head>
+<body>
+<header>
+  <span><i class="fa fa-envelope"></i> 星门邮件系统</span>
+  <div>
+    <button id="themeBtn" onclick="toggleTheme()">🌓 主题</button>
+    <button onclick="logout()"><i class="fa fa-sign-out-alt"></i> 退出</button>
+  </div>
+</header>
+<main>
+  <aside>
+    <a href="inbox.html"><span><i class="fa fa-inbox"></i> 收件箱</span><span class="badge" id="inboxBadge">0</span></a>
+    <a href="sent.html"><span><i class="fa fa-paper-plane"></i> 发件箱</span><span class="badge" id="sentBadge">0</span></a>
+    <a href="compose.html"><span><i class="fa fa-edit"></i> 写信</span></a>
+    <a href="draft.html"><span><i class="fa fa-file-alt"></i> 草稿</span><span class="badge" id="draftBadge">0</span></a>
+    <a href="spam.html"><span><i class="fa fa-exclamation-triangle"></i> 垃圾邮件</span><span class="badge" id="spamBadge">0</span></a>
+    <a href="trash.html"><span><i class="fa fa-trash"></i> 已删除</span><span class="badge" id="trashBadge">0</span></a>
+    <!-- 通讯录入口 -->
+    <a href="contacts.html"><span><i class="fa fa-address-book"></i> 通讯录</span></a>
+    <div style="margin-top:auto;font-size:12px;">邮箱容量<div id="capacityBar"><div id="capacityUsed"></div></div><div id="capacityText">0 / 1000 封</div></div>
+    <!-- 设置入口 -->
+    <a href="settings.html"><span><i class="fa fa-cog"></i> 设置</span></a>
+  </aside>
+  <section id="content">
+    <h2>📬 今天想做什么？</h2>
+    <div id="mailList"></div>
+  </section>
+</main>
+<footer>© 2024 StarGate Civilization Mail System</footer>
+
+<script>
+/* ========== 纯 localStorage 版 ========== */
+function toggleTheme() {
+  document.body.classList.toggle('light');
+  localStorage.setItem('SCMS-theme', document.body.classList.contains('light')?'light':'dark');
+}
+(function(){
+  if(localStorage.getItem('SCMS-theme')==='light') document.body.classList.add('light');
+})();
+
+function logout(){
+  localStorage.removeItem('SCMS-currentUser');
+  location.href='email.html';
+}
+
+/* --------- 主页入口 --------- */
+(function(){
+  const u = localStorage.getItem('SCMS-currentUser');
+  if(!u){ location.href='email.html'; return; }
+
+  /* 数据读写 */
+  function getStore(k){ return JSON.parse(localStorage.getItem('SCMS-'+k+'-'+u)||'[]'); }
+  function setStore(k,arr){ localStorage.setItem('SCMS-'+k+'-'+u,JSON.stringify(arr)); }
+
+  /* 徽章 & 容量 */
+  const inbox=getStore('inbox'), sent=getStore('sent'), draft=getStore('draft'), trash=getStore('trash');
+  const total=inbox.length+sent.length, pct=Math.min(100,Math.floor(total/1000*100));
+  document.getElementById('inboxBadge').textContent=inbox.filter(m=>!m.read).length;
+  document.getElementById('sentBadge').textContent=sent.length;
+  document.getElementById('draftBadge').textContent=draft.length;
+  document.getElementById('trashBadge').textContent=trash.length;
+  document.getElementById('capacityUsed').style.width=pct+'%';
+  document.getElementById('capacityText').textContent=`${total} / 1000 封`;
+
+  /* 最近5封收件 */
+  const latest=inbox.slice(-5).reverse();
+  const html=latest.length?latest.map(m=>`
+    <div class="mail" onclick="alert('主题：${m.subject}\\n\\n${m.body}')">
+      <div><b>${m.from}</b> · ${m.subject}</div>
+      <small>${new Date(m.date).toLocaleString()}</small>
+    </div>`).join('')
+    :'<p style="color:#aaa;">暂无邮件</p>';
+  document.getElementById('mailList').innerHTML=html;
+})();
+</script>
+</body>
+</html>
