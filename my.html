@@ -61,9 +61,11 @@ button.submit{padding:8px 20px;background:var(--palace-red);color:#fff;border:no
 <div class="wrap">
 <aside>
     <div class="avatar-box">
-        <div class="avatar">🌌
-            <input type="file" accept="image/*" id="avatarUpload">
-        </div>
+        <div class="avatar">
+    <img id="avatarImg" src="" 
+         style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
+    <input type="file" accept="image/*" id="avatarUpload">
+</div>
         <p style="font-size:13px;color:#86909c;">点击更换头像</p>
     </div>
     <div class="info-item"><span class="label">用户名：</span><span id="userName">--</span></div>
@@ -87,9 +89,40 @@ button.submit{padding:8px 20px;background:var(--palace-red);color:#fff;border:no
         <button class="submit" onclick="showSec('general')">通用</button>
         <button class="submit" onclick="showSec('privacy')">隐私</button>
         <button class="submit" onclick="showSec('gov')">政务信息</button>
+        <button class="submit" onclick="showSec('parliament')">议案投票</button>
         <button class="submit" onclick="showSec('other')">其他</button>
         <button class="submit" onclick="showSec('citizen')">公民互动</button>
     </nav>
+
+<script>
+// 头像功能 JS
+document.addEventListener("DOMContentLoaded", function () {
+    const avatarImg = document.getElementById("avatarImg");
+    const savedAvatar = localStorage.getItem("userAvatar");
+    if (savedAvatar) {
+        avatarImg.src = savedAvatar;
+    } else {
+        avatarImg.src = "data:image/svg+xml,\
+<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'>\
+<rect width='100%' height='100%' fill='%23e8f3ff'/>\
+<text x='50%' y='55%' font-size='45' text-anchor='middle' fill='%23165dff'>🌌</text>\
+</svg>";
+    }
+});
+
+document.getElementById("avatarUpload").addEventListener("change", function () {
+    const file = this.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function (e) {
+        const imgSrc = e.target.result;
+        document.getElementById("avatarImg").src = imgSrc;
+        localStorage.setItem("userAvatar", imgSrc);
+    };
+    reader.readAsDataURL(file);
+});
+</script>
 
     <!-- 账号管理 -->
     <section id="account" class="section active">
@@ -134,6 +167,13 @@ button.submit{padding:8px 20px;background:var(--palace-red);color:#fff;border:no
         </div>
         <button class="submit" onclick="downloadCertificate()">下载证件PDF</button>
     </section>
+    
+    <section id="parliament" class="section">
+    <h2>议案投票</h2>
+    <div id="proposal-list">
+        <!-- 动态生成的议案会插入这里 -->
+    </div>
+</section>
 
     <!-- 其他 -->
     <section id="other" class="section">
@@ -346,6 +386,58 @@ function onlineSupport(){openModal('modal-support');}
 function changePassword(){openModal('modal-changepwd');}
 function bindPhoneEmail(){openModal('modal-bind');}
 function viewLoginHistory(){openModal('modal-loginhist');}
+</script>
+<script>
+function generateProposal(id) {
+    const titles = [
+        "大凉国基础设施建设",
+        "超宇宙文明科研计划",
+        "全民文化教育提升",
+        "生态保护与自然法维护",
+        "国民幸福指数提升项目",
+        "公共安全与防护系统优化"
+    ];
+    const descs = [
+        "提升全国各地基础设施建设水平",
+        "资助超宇宙文明科研项目",
+        "普及文化教育，提升文明素养",
+        "加强生态保护与自然法执行",
+        "改善民生，提高公民幸福感",
+        "完善公共安全与防护体系"
+    ];
+    const t = titles[Math.floor(Math.random() * titles.length)];
+    const d = descs[Math.floor(Math.random() * descs.length)];
+    
+    return { id, title: t, desc: d };
+}
+
+function renderProposals(count = 5) {
+    const container = document.getElementById("proposal-list");
+    container.innerHTML = "";
+    for (let i = 1; i <= count; i++) {
+        const p = generateProposal(i);
+        const div = document.createElement("div");
+        div.className = "proposal-item";
+        div.style.borderBottom = "1px dashed #f2f3f5";
+        div.style.padding = "10px 0";
+        div.innerHTML = `
+            <p><strong>议案标题：</strong>${p.title}</p>
+            <p><strong>简介：</strong>${p.desc}</p>
+            <button onclick="voteProposal(${p.id}, 'yes')">支持 ✅</button>
+            <button onclick="voteProposal(${p.id}, 'no')">反对 ❌</button>
+        `;
+        container.appendChild(div);
+    }
+}
+
+function voteProposal(id, choice) {
+    alert(`你对议案 ${id} 的投票：${choice}`);
+}
+
+// 页面加载时生成议案
+document.addEventListener("DOMContentLoaded", function () {
+    renderProposals(5);
+});
 </script>
 </body>
 </html>
