@@ -1026,7 +1026,7 @@ document.head.appendChild(style);
       "中旸府": ["中旸县"]
     },
     "庐睘道": {
-      "合江府": ["合江县"],
+      "合江府": ["平至县"],
       "淝阴府": ["淝阴县"],
       "雍庆府": ["雍庆县"]
     },
@@ -2809,6 +2809,22 @@ href="https://zhou-yihui.github.io/liangguonation/wuweila-anthology.html" class=
 .lotus-btn:hover{background:#8b0000;}
 </style>
 
+<button onclick="window.open('calendar.html', '_blank')"
+        style="padding:8px 16px; font-size:16px;">
+  打開國曆（新頁）
+</button>
+
+<script>
+function loadCalendar() {
+  document.getElementById("calendar-container").innerHTML =
+    '<iframe src="calendar.html" style="width:100%; height:700px; border:none;"></iframe>';
+}
+</script>
+
+<button onclick="window.open('xuanliang.html', '_blank');"
+        style="padding:8px 18px; font-size:17px; cursor:pointer;">
+  進入宣涼院
+</button>
 
 <!-- 各分院委员会 -->
 <section id="committees">
@@ -3791,10 +3807,9 @@ showSlides();
   <p class="zh">如有问题，请联系：<a href="mailto:support@lyurchxieria.com">support@lyurchxieria.com</a></p>
   <p class="en" style="display:none;">For inquiries, contact: <a href="mailto:support@lyurchxieria.com">support@lyurchxieria.com</a></p>
 
-  <!-- 在线 AI 客服按钮 -->
-  <button onclick="openAIChat()" class="zh">在线客服 AI</button>
-  <button onclick="openAIChat()" class="en" style="display:none;">Online AI Support</button>
-</div>
+<!-- 在线 AI 客服按钮 -->
+<button onclick="openAIChat()" class="zh">在线客服 AI</button>
+<button onclick="openAIChat()" class="en" style="display:none;">Online AI Support</button>
 
 <script>
 function toggleLang() {
@@ -3804,9 +3819,9 @@ function toggleLang() {
   en.forEach(el => el.style.display = el.style.display === 'none' ? 'block' : 'none');
 }
 
-// 简单模拟在线 AI 弹窗
+// 跳转到 childai.html
 function openAIChat() {
-  alert("欢迎使用大凉国在线客服 AI！\n请在此输入您的问题。");
+  window.location.href = "childai.html";
 }
 </script>
 
@@ -4280,6 +4295,7 @@ function openGate(){
       <div>${c.slice(0,16)}...</div>
     </div>`;
     gate.classList.add('active');
+    window.location.href = "email.html";
   }catch(e){
     log(`[星门] 失败：${e}`);
   }
