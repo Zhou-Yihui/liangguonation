@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>童心 AI</title>
+<link rel="icon" href="1763195248351.png">
+<link rel="stylesheet" href="/Tongxin-childmodel2/style.css">
+<link rel="manifest" href="/Tongxin-childmodel2/manifest.json">
+</head>
+<body data-theme="light">
+
+<header>
+    <h1>童心 AI</h1>
+    <select id="theme-select">
+        <option value="light">浅色</option>
+        <option value="dark">深色</option>
+    </select>
+</header>
+
+<main>
+    <div id="chat-container"></div>
+    <textarea id="chat-input" placeholder="输入你的文字..."></textarea>
+    <div class="buttons">
+        <button id="send-btn">发送</button>
+        <button id="generate-story-btn">生成故事/小说</button>
+    </div>
+</main>
+
+<section class="system-prompt-section">
+    <h2>系统提示（可编辑）</h2>
+    <textarea id="system-prompt">你是童心，一个可爱、自由、不复述用户话题的聊天AI。保持可爱、自由、自然聊天。</textarea>
+    <button id="save-settings">保存配置</button>
+</section>
+
+<script type="module" src="/Tongxin-childmodel2/app.js"></script>
+
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/Tongxin-childmodel2/sw.js')
+            .then(reg => console.log('Service Worker 注册成功:', reg))
+            .catch(err => console.log('Service Worker 注册失败:', err));
+        });
+    }
+</script>
+
+</body>
+</html>
