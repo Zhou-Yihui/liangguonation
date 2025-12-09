@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>童心 AI</title>
+<link rel="icon" href="1763195248351.png">
+<link rel="manifest" href="/childhood1/manifest.json">
+<style>
+/* ========== = style.css 同款 ========== */
+body{margin:0;font-family:"微软雅黑",sans-serif;background-color:#fff0f5;color:#333}
+body[data-theme="dark"]{background-color:#2c2c2c;color:#f0f0f0}
+header{padding:10px;background-color:#ff69b4;color:white;display:flex;justify-content:space-between;align-items:center}
+#chat-container{height:400px;overflow-y:auto;border:1px solid #ccc;padding:10px;margin:10px;background:#fffaf0;display:flex;flex-direction:column}
+.message{padding:5px 10px;margin-bottom:5px;border-radius:10px;max-width:80%}
+.message.user{background-color:#add8e6;align-self:flex-end}
+.message.ai{background-color:#ffb6c1;align-self:flex-start}
+textarea{width:calc(100% - 22px);margin:10px;padding:10px;border-radius:5px}
+button{margin:5px;padding:5px 10px;border-radius:5px;cursor:pointer}
+.buttons{text-align:center}
+.system-prompt-section{margin:10px}
+</style>
+</head>
+
+<body data-theme="light">
+<header>
+    <h1>童心 AI</h1>
+    <select id="theme-select">
+        <option value="light">浅色</option>
+        <option value="dark">深色</option>
+    </select>
+</header>
+
+<main>
+    <div id="chat-container"></div>
+    <textarea id="chat-input" placeholder="输入你的文字..."></textarea>
+    <div class="buttons">
+        <button id="send-btn">发送</button>
+        <button id="generate-story-btn">生成故事/小说</button>
+    </div>
+</main>
+
+<section class="system-prompt-section">
+    <h2>系统提示（可编辑）</h2>
+    <textarea id="system-prompt">你是童心，一个可爱、自由、不复述用户话题的聊天AI。保持可爱、自由、自然聊天。</textarea>
+    <button id="save-settings">保存配置</button>
+</section>
+
+<script type="module">
+/* ========== = app.js 同款 ========== */
+const HF_MODEL = 'facebook/opt-350m';
+const HF_TOKEN = 'hf_PublicReadOnly';
+const MAX_NEW_TOKENS = 120;
+const TEMPERATURE = 0.9;
+
+async function llm(prompt, opts = {}) {
+  const body = {
+    inputs: prompt,
+    parameters: {
+      max_new_tokens: opts.maxTokens || MAX_NEW_TOKENS,
+      temperature: opts.temp || TEMPERATURE,
+      return_full_text: false
+    }
+  };
+  const res = await fetch(`https://api-inference.huggingface.co/models/${HF_MODEL}`, {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${HF_TOKEN}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) throw new Error('HF 接口异常 ' + res.status);
+  const json = await res.json();
+  return json[0].generated_text.trim();
+}
+
+class AI {
+  constructor() { this.ready = false; }
+  async loadModel() { console.log('【童心】已就绪，模型:', HF_MODEL); this.ready = true; }
+  async generateResponse(userInput, systemPrompt = '') {
+    const prompt = systemPrompt ? `${systemPrompt}\n\nUser: ${userInput}\n童心:` : `User: ${userInput}\n童心:`;
+    return await llm(prompt, { temp: 0.8 });
+  }
+  async generateStory(userHint) {
+    const prompt = `根据下面提示写一段 200 字左右的原创小故事，有起承转合。\n提示：${userHint}\n故事：`;
+    return await llm(prompt, { maxTokens: 180, temp: 1.0 });
+  }
+}
+
+/* ========== = UI 逻辑 ========== */
+const ai = new AI(); await ai.loadModel();
+const chatContainer = document.getElementById('chat-container');
+const chatInput = document.getElementById('chat-input');
+const sendBtn = document.getElementById('send-btn');
+const generateStoryBtn = document.getElementById('generate-story-btn');
+const systemPromptEl = document.getElementById('system-prompt');
+const themeSelect = document.getElementById('theme-select');
+const saveSettingsBtn = document.getElementById('save-settings');
+
+function appendMessage(text, type = 'ai') {
+  const div = document.createElement('div');
+  div.className = 'message ' + type;
+  div.innerText = text;
+  chatContainer.appendChild(div);
+  chatContainer.scrollTop = chatContainer.scrollHeight;
+}
+
+sendBtn.addEventListener('click', async () => {
+  const userText = chatInput.value.trim();
+  if (!userText) return;
+  appendMessage(userText, 'user');
+  chatInput.value = '';
+  try { appendMessage(await ai.generateResponse(userText, systemPromptEl.value), 'ai'); }
+  catch (e) { appendMessage('（生成失败，稍后再试）', 'ai'); }
+});
+
+generateStoryBtn.addEventListener('click', async () => {
+  const hint = chatInput.value.trim() || '随机童话';
+  appendMessage(`📖 正在创作：${hint}`, 'ai');
+  try { appendMessage(await ai.generateStory(hint), 'ai'); }
+  catch (e) { appendMessage('（故事生成失败）', 'ai'); }
+});
+
+saveSettingsBtn.addEventListener('click', () => { localStorage.setItem('systemPrompt', systemPromptEl.value); alert('配置已保存！'); });
+themeSelect.addEventListener('change', () => document.body.setAttribute('data-theme', themeSelect.value));
+window.addEventListener('beforeunload', () => { const chats = Array.from(chatContainer.children).map(c => c.innerText); localStorage.setItem('chat_history', JSON.stringify(chats)); });
+window.addEventListener('load', () => {
+  const chats = JSON.parse(localStorage.getItem('chat_history') || '[]');
+  chats.forEach(c => { const isAI = /^[😊✨🤗😆💖🌸📖（]/.test(c); appendMessage(c, isAI ? 'ai' : 'user'); });
+  systemPromptEl.value = localStorage.getItem('systemPrompt') || systemPromptEl.value;
+});
+
+/* ========== = PWA：注册 SW ========== */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/childhood1/sw.js')
+      .then(reg => console.log('Service Worker 注册成功:', reg))
+      .catch(err => console.log('Service Worker 注册失败:', err));
+  });
+}
+</script>
+</body>
+</html>
