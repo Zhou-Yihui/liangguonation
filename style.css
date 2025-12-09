@@ -1,0 +1,10 @@
+body[data-theme="light"] { background:#f4f4f9; color:#333; }
+body[data-theme="dark"] { background:#1e1e2f; color:#eee; }
+header { display:flex; justify-content:space-between; align-items:center; padding:10px; background:#004bbb; color:white; }
+#chat-container { height:60vh; overflow:auto; border:1px solid #ccc; padding:10px; margin:10px 0; background:white; border-radius:8px; }
+.message.user { text-align:right; color:#004bbb; margin:5px 0; }
+.message.ai { text-align:left; color:#333; margin:5px 0; }
+textarea { width:100%; padding:5px; border-radius:5px; }
+.buttons { margin:5px 0; display:flex; gap:5px; }
+button { padding:5px 10px; border:none; border-radius:5px; background:#004bbb; color:white; cursor:pointer; }
+.system-prompt-section { margin-top:10px; }
