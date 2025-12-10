@@ -92,6 +92,8 @@ button.submit{padding:8px 20px;background:var(--palace-red);color:#fff;border:no
         <button class="submit" onclick="showSec('parliament')">议案投票</button>
         <button class="submit" onclick="showSec('other')">其他</button>
         <button class="submit" onclick="showSec('citizen')">公民互动</button>
+        <button class="submit" onclick="location.href='gen.html'">电号生成</button>
+        <button class="submit" onclick="showSec('transport')">交通订票</button>
     </nav>
 
 <script>
@@ -439,5 +441,509 @@ document.addEventListener("DOMContentLoaded", function () {
     renderProposals(5);
 });
 </script>
+<!-- ========== 交通订票 start ========== -->
+<section id="transport" class="section" style="display:none;padding:20px;background:#fff;border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,.04);">
+  <h2 style="color:#004d99;margin-top:0;">交通订票</h2>
+
+  <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin-bottom:12px;">
+    <label>出发地：
+      <select id="sel-province-from"></select>
+    </label>
+
+    <label>出发 - 府：
+      <select id="sel-pref-from"></select>
+    </label>
+
+    <label>出发 - 县/区：
+      <select id="sel-county-from"></select>
+    </label>
+
+    <label>目的地：
+      <select id="sel-province-to"></select>
+    </label>
+
+    <label>目的 - 府：
+      <select id="sel-pref-to"></select>
+    </label>
+
+    <label>目的 - 县/区：
+      <select id="sel-county-to"></select>
+    </label>
+  </div>
+
+  <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:12px;">
+    <label>出行方式：
+      <select id="sel-mode">
+        <option value="train">火车</option>
+        <option value="highspeed">高铁</option>
+        <option value="plane">飞机</option>
+        <option value="ship">轮船</option>
+      </select>
+    </label>
+
+    <label>出发日期：
+      <input type="date" id="dep-date">
+    </label>
+
+    <label>出发时间（偏好）：
+      <input type="time" id="dep-time">
+    </label>
+
+    <label>舱位/座位类型：
+      <select id="sel-class">
+        <option value="standard">普通</option>
+        <option value="comfort">舒适</option>
+        <option value="first">头等/商务</option>
+      </select>
+    </label>
+
+    <label>乘客姓名：
+      <input type="text" id="passenger-name" placeholder="填写真实姓名">
+    </label>
+
+    <label>乘客数：
+      <input type="number" id="passenger-count" value="1" min="1" style="width:80px;">
+    </label>
+  </div>
+
+  <div style="margin-bottom:12px;">
+    <button id="btn-search" class="submit" style="padding:8px 16px;">查询可订车次/航班</button>
+    <button id="btn-clear" style="padding:8px 16px;margin-left:8px;">重置</button>
+  </div>
+
+  <!-- 搜索到的车次/航班列表 -->
+  <div id="results" style="margin-top:16px;"></div>
+
+  <!-- 已预订订单 -->
+  <div id="my-orders" style="margin-top:22px;">
+    <h3 style="margin:8px 0 6px;color:#333;">我的订单</h3>
+    <div id="orders-list"></div>
+  </div>
+</section>
+<!-- ========== 交通订票 end ========== -->
+<script id="region-data">
+// ==== 大凉国省-府-县 三级数据（已拆出，直接放这里即可） ====
+const regions = {
+  "江中道": {
+    "忠州府": ["南城县","北城县"],
+    "边城府": ["边南县","边北县"],
+    "四部府": ["四一部","四二部"],
+    "中阴府": ["中阴聚落"]
+  },
+  "川阳道": {
+    "中阳府": ["高陵县"],
+    "周康府": ["采邑公社"],
+    "翊州府": ["翊州聚落"]
+  },
+  "定州道": {
+    "顺庆府": ["顺庆县"],
+    "冞州府": ["忘忧区"],
+    "宝华府": ["宝华县"],
+    "泽州府": ["泽州县"],
+    "台陵府": ["天采公社"]
+  },
+  "京畿道": {
+    "会州府": ["南会县","阳关县"],
+    "东华府": ["东华县"],
+    "东琉府": ["东琉璃山脉自然生态保护区"],
+    "圣天元堡": ["圣天堡聚落"],
+    "圣颜宇翔堡": ["文於公社"]
+  },
+  "西琉道": {
+    "山南府": ["卑赧区"],
+    "箕尾府": ["原南县"],
+    "川南林区": ["灵山县"]
+  },
+  "嘉杭道": {
+    "余州府": ["锦上公社"],
+    "江南府": ["沁江公社","江右公社"]
+  },
+  "宪宽道": {
+    "顺都府": ["中都公社","天中县","江东县"],
+    "神中府": ["神中县"],
+    "明安府": ["明安县"]
+  },
+  "平原道": {
+    "成邑府": ["圣都公社"],
+    "函州府": ["函州县"],
+    "中旸府": ["中旸县"]
+  },
+  "庐睘道": {
+    "合江府": ["平至县"],
+    "淝阴府": ["淝阴县"],
+    "雍庆府": ["雍庆县"]
+  },
+  "朔口道": {
+    "中护府": ["关南县"],
+    "西和府": ["山戊县"]
+  },
+  "广北道": {
+    "广宁府": ["广宁县"],
+    "也州府": ["也州县"],
+    "光华府": ["光华县"],
+    "万池府": ["峡间县","西地县","南池县","东涟县"],
+    "邑川府": ["岭南县"],
+    "望州府": ["染陂县"],
+    "洲角府": ["临沙县"]
+  },
+  "上再黎道": {
+    "口边府": ["口边县"],
+    "庆叻府": ["庆叻县"],
+    "海防港府": ["海防聚落"],
+    "西川府": ["西川县"],
+    "徐庆元府": []
+  },
+  "真和道": {
+    "海南府": ["海南县"]
+  },
+  "禹远道": {
+    "东宁府": ["东宁县"],
+    "广平府": ["广平县"],
+    "文正府": ["文正县"],
+    "禹恒府": ["禹恒县"],
+    "晨州府": ["晨州县"],
+    "清远府": ["清远县"],
+    "临少府": ["艾恒公社"],
+    "夹川府": ["夹川县"]
+  },
+  "景阳道": {
+    "宫阳府": ["花涯区","江陵区"],
+    "明华府": ["明华县"],
+    "晖良府": ["晖良县"]
+  },
+  "九凉道": {
+    "高凉府": ["高凉县"],
+    "平颖府": ["平颖县"],
+    "民治府": ["民和县","齐治县"],
+    "中华府": [],
+    "下凉府": [],
+    "山州府": []
+  },
+  "安诸省": {
+    "勐开府": ["钦孜县","众安区"],
+    "越都府": ["上安县"],
+    "正太府": ["正太县"],
+    "邑州府": ["尚竹区"]
+  },
+  "德意志罗曼省": {
+    "圣柏林郡": ["克拉维亚县"],
+    "厄斯曼大区": ["厄斯曼聚落"],
+    "哈得里奥大区": ["哈得里奥聚落"]
+  },
+  "巴萨克省": {
+    "哈拉苏喇府": ["哈拉苏喇县"],
+    "哈剌林特府": ["哈剌林特县"],
+    "蒙车利": ["蒙车利聚落"],
+    "南额朵儿戈壁": ["戈壁聚落"],
+    "巴萨赛托": ["那加克列亚郡"],
+    "乌塞提斯": ["列尔那郡"],
+    "坎梅拉": ["乌加尔郡"],
+    "林边": ["林边聚落"],
+    "敖堂": ["敖堂聚落"],
+    "呼尔林那盟": ["喀拉尔旗"],
+    "瑟日丹": ["瑟日那聚落"],
+    "突厥利亚斯克": [],
+    "乌察米尔台科列亚布卡拉维斯克": [],
+    "迦伐罗": []
+  },
+  "南极边区都护": {
+    "仙隐都府": [],
+    "真化部": [],
+    "德化部": [],
+    "妙上齐道部": [],
+    "清一部": [],
+    "色列那部": [],
+    "光上部": [],
+    "霍尔浩林部": []
+  },
+  "如意路": {
+    "如意城": [],
+    "宝自在": [],
+    "释那迦舍": [],
+    "极乐城": [],
+    "如意宝王": [],
+    "毗琉璃波罗奈": [],
+    "摩诃苏罗提诃": [],
+    "波惹那舍那提": [],
+    "福城": [],
+    "净名": [],
+    "晴凉": [],
+    "云相": [],
+    "摩尼": [],
+    "吉庆": [],
+    "光化": [],
+    "旃檀海": [],
+    "圆觉": [],
+    "清泰": [],
+    "空相": []
+  },
+  "碧色欢喜路": { "未列具体府": [] },
+  "交港府": { "滟阳县": [], "临渚县": [], "沙湾嘴区": [], "遥安公社": [] },
+  "热久府": { "伊奈县": [] },
+  "襄川府": { "域南县": [] },
+  "凡多府": {
+    "圣京公社": ["锦光街道"],
+    "大都公社": ["中交街道"],
+    "麦和经济开发区": [],
+    "灵泽县": ["白昭乡"],
+    "景民县": [],
+    "屋桓县": ["南桓乡"],
+    "西郊新区": [],
+    "胜安新区": ["观上区"]
+  },
+  "依利伐亦省": { "布哈拉郡": ["布哈拉聚落"], "厄里亚那": ["厄里亚那聚落"], "阿扎伊尔沙漠区": [] },
+  "阿列夫泰州": {
+    "阿列夫泰郡": ["阿列夫泰聚落"],
+    "不日那比尔大区": ["不日那比尔聚落"],
+    "契莫诃耶夫大区": ["契莫诃耶夫聚落"],
+    "塞雅格琳堡大区": ["塞雅格琳堡聚落"]
+  },
+  "友谊道": {
+    "法兰瑞": ["法兰瑞聚落"],
+    "康瑞": ["康瑞聚落"],
+    "云宝黛维诗": ["云宝黛维诗聚落"],
+    "波克布洛克": ["波克布洛克聚落"],
+    "多惹埃蒙": []
+  },
+  "阿底舍利道": {
+    "日库吉涅钦": ["日库吉涅钦聚落"],
+    "上康": ["上康聚落"],
+    "襄嘉措王": ["襄嘉措王聚落"],
+    "乌尔那": ["乌尔那聚落"],
+    "摩诃慕提斯": ["摩诃慕提斯聚落"]
+  },
+  "普拉特尔坎邦": { "阿瓦纳基": [], "卡克斯提亚雨林区": [] },
+  "玛提莫尔地区": { "乌里耶兹": [], "乌察不斯": [], "乌察赛布斯•比耶输迦那": [], "摩诃萨林那": [], "布洛克": [] },
+  "密利耶菲尔达省": { "里卡瑞亚": [], "伊泽克里斯提那": [] },
+  "尔喀布尼利克州": { "莱诺": [], "杰西卡利亚": [] },
+  "国上道": { "国上": [] },
+  "和谐道": { "图哈达": [] },
+  "库亚拉省": { "恩贡多": [] },
+  "瓦加马尔西南特区": { "萨赫特": [], "穆巴扎哈姆": [], "锡尔瓦": [], "泽加万": [], "卡伊图姆": [], "阿巴尔卡": [] },
+  "工业道": { "工业城": [], "大工府": [], "生物工程城": [], "日化城": [], "化学城": [], "物理城": [] },
+  "燕阳道": { "解放府": [], "赤塔府": [] },
+  "北海省": { "斯大林格勒林亚": [], "克亚保加港": [], "巴提乌": [], "明利察": [] },
+  "东方道": { "大庭府": ["临琉县","邶水区"], "极州府": ["沿厄县"], "静灵府": [], "般若府": [] },
+  "宇联特区": { "圣万德": [] },
+  "瀛凰特别行政区": { "鹰咀市": [], "沙道市": [], "饶汀梁市": [], "原上市": [], "麓川市": [] },
+  "洢甸道": { "会南府": [], "江口府": ["乂宁县","江北县","洢左县"], "高甸府": [] },
+  "巴娜道": { "巴娜利亚": [], "桑格耶": [], "卡尼德": [], "雅雅亚奇": [], "萨雅耶": [], "提苏": [], "卡娜巴多": [] },
+  "长庆道": { "圣金府": [], "曹阳府": ["庆阳县"], "深城府": ["生米县","星可区"], "御州府": [] },
+  "关内道": { "兴庆府": ["隰县"] },
+  "梦幻道": { "联和府": ["幻州县"] },
+  "海西省": { "西海口": [], "牦城": [], "边海": [], "西山": [], "极西": ["西域边"] },
+  "京华府": { "北地县": ["于乡"], "观阳军事区": [], "江边县": [], "户华公社": [], "庆阴县": [], "雍泠区": [], "陵明公社": [], "湖西区": ["临仓镇"] },
+  "上苏维埃省": { "布尔什维格勒": [] },
+  "梵网教区": { "毗阇耶城": [], "麦迪什布": [], "道上": [], "伊尔雅克": [] },
+  "苏丹省": { "瓜哈图姆苏尔加": [] },
+  "上和乐道": { "无明府": [], "上元府": ["圆明公社","自在县"], "仓南府": ["滨湖公社","湖南区","仓阴县"] },
+  "江北道": { "毛泽东府": [], "乌维拉日尼乌察别列斯克": [] },
+  "西江道": { "沂昌府": ["昌西县","昌东县"], "和东府": [] },
+  "必支府": { "久弯县": [] },
+  "涧门道": { "忻春府": ["塔古县","涧源区"], "江间府": [] },
+  "易关省": { "关中府": [], "西会府": ["银陵区"] },
+  "溟川路": { "冥山府": [] },
+  "天极法路": { "明正府": [] }
+};
+// ==== 结束 regions 数据 ====
+</script><script>
+// ========== 交通订票 UI 与逻辑 ==========
+
+// 如果页面没有 showSec 函数，提供一个简单兼容函数（以便在个人页内显示/隐藏 section）
+if (typeof showSec !== 'function') {
+  function showSec(id) {
+    // 隐藏所有 class="section"
+    document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'block';
+  }
+}
+
+// 元素快捷引用
+const selProvFrom = document.getElementById('sel-province-from');
+const selPrefFrom = document.getElementById('sel-pref-from');
+const selCountyFrom = document.getElementById('sel-county-from');
+const selProvTo = document.getElementById('sel-province-to');
+const selPrefTo = document.getElementById('sel-pref-to');
+const selCountyTo = document.getElementById('sel-county-to');
+
+const selMode = document.getElementById('sel-mode');
+const depDate = document.getElementById('dep-date');
+const depTime = document.getElementById('dep-time');
+const selClass = document.getElementById('sel-class');
+const passengerName = document.getElementById('passenger-name');
+const passengerCount = document.getElementById('passenger-count');
+
+const resultsDiv = document.getElementById('results');
+const ordersList = document.getElementById('orders-list');
+
+const btnSearch = document.getElementById('btn-search');
+const btnClear = document.getElementById('btn-clear');
+
+// 初始化省列表（双向：出发 & 目的）
+function initProvinces() {
+  const provinces = Object.keys(regions);
+  fillSelect(selProvFrom, provinces, '选择省/道');
+  fillSelect(selProvTo, provinces, '选择省/道');
+  // 触发联动
+  selProvFrom.dispatchEvent(new Event('change'));
+  selProvTo.dispatchEvent(new Event('change'));
+}
+
+function fillSelect(sel, items, placeholder) {
+  sel.innerHTML = '';
+  if (placeholder) {
+    const opt = document.createElement('option');
+    opt.value = '';
+    opt.textContent = placeholder;
+    sel.appendChild(opt);
+  }
+  items.forEach(it => {
+    const opt = document.createElement('option');
+    opt.value = it;
+    opt.textContent = it;
+    sel.appendChild(opt);
+  });
+}
+
+// 省 -> 府 联动
+selProvFrom.addEventListener('change', function() {
+  const prov = this.value;
+  const prefs = prov ? Object.keys(regions[prov]) : [];
+  fillSelect(selPrefFrom, prefs, '选择府');
+  selPrefFrom.dispatchEvent(new Event('change'));
+});
+selProvTo.addEventListener('change', function() {
+  const prov = this.value;
+  const prefs = prov ? Object.keys(regions[prov]) : [];
+  fillSelect(selPrefTo, prefs, '选择府');
+  selPrefTo.dispatchEvent(new Event('change'));
+});
+
+// 府 -> 县/区 联动
+selPrefFrom.addEventListener('change', function() {
+  const prov = selProvFrom.value;
+  const pref = this.value;
+  const counties = (prov && pref) ? (regions[prov][pref] || []) : [];
+  fillSelect(selCountyFrom, counties, '选择县/区');
+});
+selPrefTo.addEventListener('change', function() {
+  const prov = selProvTo.value;
+  const pref = this.value;
+  const counties = (prov && pref) ? (regions[prov][pref] || []) : [];
+  fillSelect(selCountyTo, counties, '选择县/区');
+});
+
+// 重置按钮
+btnClear.addEventListener('click', () => {
+  selProvFrom.selectedIndex = 0;
+  selPrefFrom.innerHTML = '';
+  selCountyFrom.innerHTML = '';
+  selProvTo.selectedIndex = 0;
+  selPrefTo.innerHTML = '';
+  selCountyTo.innerHTML = '';
+  depDate.value = '';
+  depTime.value = '';
+  selMode.value = 'train';
+  selClass.value = 'standard';
+  passengerName.value = '';
+  passengerCount.value = 1;
+  resultsDiv.innerHTML = '';
+});
+
+// 生成“可订车次/航班” —— 前端根据选择即时生成真实感结果（非后端模拟）
+function generateTrips(params) {
+  // 参数：from,to,mode,date,time,class,count,name
+  // 生成规则：根据省-府-县的字符串 hash 及时间生成若干班次，保证每次同一配置稳定可复现
+  const { from, to, mode, date, time, cls } = params;
+  if (!from || !to || from===to) return [];
+
+  // 生成基准 seed
+  const seedStr = `${from}|${to}|${mode}|${date}|${time}|${cls}`;
+  let seed = 0;
+  for (let i=0;i<seedStr.length;i++) seed = (seed * 131 + seedStr.charCodeAt(i)) >>> 0;
+
+  const count = 3 + (seed % 4); // 3~6 个班次
+  const trips = [];
+  for (let i=0;i<count;i++) {
+    // 生成时间（在用户期望时间附近）
+    const baseHour = time ? parseInt(time.split(':')[0],10) : 8 + (seed % 8);
+    const hour = (baseHour + i) % 24;
+    const minute = [0,15,30,45][(seed + i) % 4];
+    const depart = `${String(hour).padStart(2,'0')}:${String(minute).padStart(2,'0')}`;
+
+    // 耗时基于距离（字符串差异）和交通工具
+    const distFactor = (Math.abs(hashCode(from) - hashCode(to)) % 10) + 1;
+    let duration;
+    if (mode === 'plane') duration = Math.max(1, Math.round(distFactor / 3)) + 1; // hours
+    else if (mode === 'highspeed') duration = Math.max(1, Math.round(distFactor / 2)) + 1;
+    else if (mode === 'ship') duration = Math.max(2, Math.round(distFactor * 1.5));
+    else duration = Math.max(2, Math.round(distFactor)); // train
+
+    // 票价简单计算（基于时长、舱位系数、随机seed）
+    const classFactor = cls === 'first' ? 2.6 : (cls === 'comfort' ? 1.4 : 1.0);
+    const priceBase = Math.max(10, duration * 20);
+    const price = Math.round((priceBase + (seed % 50)) * classFactor);
+
+    trips.push({
+      id: `T-${Math.abs(seed ^ (i+1)).toString(36).toUpperCase()}`,
+      departTime: depart,
+      durationHours: duration,
+      price: price,
+      carrier: mode === 'plane' ? '天行航空' : (mode === 'highspeed' ? '飞速铁路' : (mode === 'ship' ? '瀛凰航运' : '大凉列车')),
+      seatsLeft: 10 + ((seed + i) % 40)
+    });
+  }
+  return trips;
+}
+
+// 辅助 hash 函数
+function hashCode(str) {
+  let h=0;
+  for (let i=0;i<str.length;i++) h = (h<<5) - h + str.charCodeAt(i);
+  return Math.abs(h);
+}
+
+// 渲染搜索结果
+function renderTrips(trips, params) {
+  resultsDiv.innerHTML = '';
+  if (!trips.length) {
+    resultsDiv.innerHTML = '<p style="color:#888;">未能生成可订班次（请检查出发地与目的地是否选择或不同）</p>';
+    return;
+  }
+  trips.forEach(t => {
+    const block = document.createElement('div');
+    block.style.border = '1px solid #eee';
+    block.style.padding = '10px';
+    block.style.marginBottom = '10px';
+    block.style.borderRadius = '6px';
+    block.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div style="font-weight:600;color:#222;">${params.from} → ${params.to}</div>
+          <div style="color:#666;font-size:13px;margin-top:6px;">
+            承运：${t.carrier} · 出发：${depDate.value || '—'} ${t.departTime} · 时长：${t.durationHours} 小时
+          </div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:18px;color:#004d99;font-weight:700;">${t.price} 通证</div>
+          <div style="color:#888;font-size:13px;">余票：${t.seatsLeft}</div>
+          <button style="margin-top:8px;padding:6px 10px;" onclick='bookTrip(${JSON.stringify(t).replace(/'/g,"\\'")}, ${JSON.stringify(params).replace(/'/g,"\\'")})'>预订</button>
+        </div>
+      </div>
+    `;
+    resultsDiv.appendChild(block);
+  });
+}
+
+// 预订函数（保存到 localStorage）
+function bookTrip(trip, params) {
+  const name = (passengerName.value || '匿名');
+  const count = Math.max(1, parseInt(passengerCount.value,10) || 1);
+  const booking = {
+    ticketNo: 'DL' + Date.now().toString(36).toUpperCase().slice(-8),
+    tripId: trip.id,
+    from: params.from, to: params.to,
+
 </body>
 </html>
