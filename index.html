@@ -2350,19 +2350,19 @@ box.addEventListener('dblclick',openFull);
     <h2>议员信息</h2>
     <div style="display:flex; flex-wrap:wrap; gap:20px;">
         <div style="flex:1 1 200px; background:#fff; padding:10px; border-radius:5px; text-align:center;">
-            <img src="https://via.placeholder.com/150.png?text=议员A" alt="议员A" style="width:100px; border-radius:50%;">
-            <h3>议员A</h3>
-            <p>职务：委员会主席</p>
+            <img src="1765340149289.png?text=议员A" alt="议员A" style="width:100px; border-radius:50%;">
+            <h3>徐庆元</h3>
+            <p>职务：皇帝、国会及中央委员会名誉主席</p>
         </div>
         <div style="flex:1 1 200px; background:#fff; padding:10px; border-radius:5px; text-align:center;">
-            <img src="https://via.placeholder.com/150.png?text=议员B" alt="议员B" style="width:100px; border-radius:50%;">
-            <h3>议员B</h3>
-            <p>职务：副主席</p>
+            <img src="1765345905147.png?text=议员B" alt="议员B" style="width:100px; border-radius:50%;">
+            <h3>翔、宇、尧、丞、六、一、糖、沫、铭、钰、睿、扬、晨、涵、州、意、晖、石头、泽、汉、九、杭、贺、正、齐、娃、硕、艾克、宸、政、宥、黑豆、成、升、元、琪、明、煌、楠、恩、林、哲、淇、棋、瑶、轩、卿、航、战、志、杰、超、炜、斌、龙、仲、峰、源、辉、愿、俊等</h3>
+            <p>职务：特别议员</p>
         </div>
         <div style="flex:1 1 200px; background:#fff; padding:10px; border-radius:5px; text-align:center;">
-            <img src="https://via.placeholder.com/150.png?text=议员C" alt="议员C" style="width:100px; border-radius:50%;">
-            <h3>议员C</h3>
-            <p>职务：委员</p>
+            <img src="1765342454128.png?text=议员C" alt="议员C" style="width:100px; border-radius:50%;">
+            <h3>高禹远</h3>
+            <p>职务：外务省总理</p>
         </div>
     </div>
 </section><!-- ========== 地图板块 start ========== -->
@@ -2370,7 +2370,7 @@ box.addEventListener('dblclick',openFull);
 
   <h2 style="text-align:center;color:#004d99;margin-bottom:20px;">大凉国疆域图</h2>
 
-  <!-- 切换按钮 -->
+  <!-- 星域/星球切换按钮 -->
   <div style="display:flex;justify-content:center;margin-bottom:15px;">
     <button id="btn-star" onclick="switchMap('star')"
             style="flex:1;padding:10px;border:1px solid #004d99;background:#004d99;color:#fff;cursor:pointer;border-radius:4px 0 0 4px;">星域全图</button>
@@ -2380,12 +2380,15 @@ box.addEventListener('dblclick',openFull);
 
   <!-- 地图容器 -->
   <div id="map-container" style="position:relative;width:100%;padding-bottom:60%;border:1px solid #ddd;border-radius:6px;overflow:hidden;">
-    <!-- 星域图 -->
-    <img id="map-star" class="map-img" src="https://raw.githubusercontent.com/Zhou-Yihui/liangguonation/e3e3260afb3fbf8562c06f1a2d3f487915d9b7bc/retouch_2025101922170575.jpg"
-         style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;display:block;">
+    
+    <!-- 星域图容器 -->
+    <div id="map-star-container" style="position:relative;width:100%;height:100%;"></div>
+
     <!-- 主星球图 -->
-    <img id="map-planet" class="map-img" src="https://raw.githubusercontent.com/Zhou-Yihui/liangguonation/ea58af8f29c1f0a176d504ec3b4a93377e66554d/IMG_20251022_225546.jpg"
+    <img id="map-planet" class="map-img" 
+         src="https://raw.githubusercontent.com/Zhou-Yihui/liangguonation/ea58af8f29c1f0a176d504ec3b4a93377e66554d/IMG_20251022_225546.jpg"
          style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;display:none;">
+
   </div>
 
   <!-- 简介文字 -->
@@ -2394,36 +2397,78 @@ box.addEventListener('dblclick',openFull);
     <span id="desc-planet" style="display:none;">中央主星球——圣明华浮光世界，涵盖如意路、江中道、南极边区都护、京师凡多、瀛凰特别行政区、宇联特区等核心区域。</span>
   </div>
 
+  <!-- 星域图切换按钮 -->
+  <div id="star-buttons" style="display:flex;justify-content:center;margin-top:10px;gap:8px;"></div>
+
 </section>
 
 <script>
-function switchMap(type){
-  const starMap  = document.getElementById('map-star');
-  const planetMap= document.getElementById('map-planet');
-  const btnStar  = document.getElementById('btn-star');
-  const btnPlanet= document.getElementById('btn-planet');
-  const descStar = document.getElementById('desc-star');
-  const descPlanet=document.getElementById('desc-planet');
+// 星域图URL数组，可无限扩展
+const starImages = [
+    "https://raw.githubusercontent.com/Zhou-Yihui/liangguonation/e3e3260afb3fbf8562c06f1a2d3f487915d9b7bc/retouch_2025101922170575.jpg",
+    "https://raw.githubusercontent.com/Zhou-Yihui/liangguonation/e3e3260afb3fbf8562c06f1a2d3f487915d9b7bc/retouch_2025121013542455.jpg"
+];
 
-  if(type==='star'){
-    starMap.style.display   = 'block';
-    planetMap.style.display = 'none';
-    btnStar.style.cssText   = 'flex:1;padding:10px;border:1px solid #004d99;background:#004d99;color:#fff;cursor:pointer;border-radius:4px 0 0 4px;';
-    btnPlanet.style.cssText = 'flex:1;padding:10px;border:1px solid #004d99;background:#fff;color:#004d99;cursor:pointer;border-radius:0 4px 4px 0;';
-    descStar.style.display   = 'inline';
-    descPlanet.style.display = 'none';
-  }else{
-    starMap.style.display   = 'none';
-    planetMap.style.display = 'block';
-    btnStar.style.cssText   = 'flex:1;padding:10px;border:1px solid #004d99;background:#fff;color:#004d99;cursor:pointer;border-radius:4px 0 0 4px;';
-    btnPlanet.style.cssText = 'flex:1;padding:10px;border:1px solid #004d99;background:#004d99;color:#fff;cursor:pointer;border-radius:0 4px 4px 0;';
-    descStar.style.display   = 'none';
-    descPlanet.style.display = 'inline';
-  }
+const starContainer = document.getElementById("map-star-container");
+const starButtonsDiv = document.getElementById("star-buttons");
+
+// 初始化渲染图片
+starImages.forEach((src, index) => {
+    const img = document.createElement("img");
+    img.src = src;
+    img.style.position = "absolute";
+    img.style.top = 0;
+    img.style.left = 0;
+    img.style.width = "100%";
+    img.style.height = "100%";
+    img.style.objectFit = "contain";
+    img.style.display = index === 0 ? "block" : "none"; // 默认显示第一张
+    img.id = `map-star-${index}`;
+    starContainer.appendChild(img);
+
+    // 为每张图片生成按钮
+    const btn = document.createElement("button");
+    btn.textContent = `图${index+1}`;
+    btn.style.padding = "6px 12px";
+    btn.style.cursor = "pointer";
+    btn.onclick = () => showStarImage(index);
+    starButtonsDiv.appendChild(btn);
+});
+
+// 显示指定星域图
+function showStarImage(index){
+    starImages.forEach((_, i) => {
+        document.getElementById(`map-star-${i}`).style.display = i === index ? "block" : "none";
+    });
+}
+
+// 星域/星球切换
+function switchMap(type){
+    const btnStar = document.getElementById('btn-star');
+    const btnPlanet= document.getElementById('btn-planet');
+    const descStar = document.getElementById('desc-star');
+    const descPlanet=document.getElementById('desc-planet');
+    const starContainer = document.getElementById('map-star-container');
+    const planetMap = document.getElementById('map-planet');
+
+    if(type==='star'){
+        starContainer.style.display = 'block';
+        planetMap.style.display = 'none';
+        btnStar.style.cssText = 'flex:1;padding:10px;border:1px solid #004d99;background:#004d99;color:#fff;cursor:pointer;border-radius:4px 0 0 4px;';
+        btnPlanet.style.cssText = 'flex:1;padding:10px;border:1px solid #004d99;background:#fff;color:#004d99;cursor:pointer;border-radius:0 4px 4px 0;';
+        descStar.style.display = 'inline';
+        descPlanet.style.display = 'none';
+    }else{
+        starContainer.style.display = 'none';
+        planetMap.style.display = 'block';
+        btnStar.style.cssText = 'flex:1;padding:10px;border:1px solid #004d99;background:#fff;color:#004d99;cursor:pointer;border-radius:4px 0 0 4px;';
+        btnPlanet.style.cssText = 'flex:1;padding:10px;border:1px solid #004d99;background:#004d99;color:#fff;cursor:pointer;border-radius:0 4px 4px 0;';
+        descStar.style.display = 'none';
+        descPlanet.style.display = 'inline';
+    }
 }
 </script>
 <!-- ========== 地图板块 end ========== -->
-
 
 <section id="laws">
     <h2>法律与文件</h2>
