@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>大凉国电话号码生成器</title>
+    <style>
+        body{font-family:Arial,Helvetica,sans-serif;margin:20px;background:#f4f4f9}
+        h1{text-align:center}
+        .container{max-width:600px;margin:0 auto;background:#fff;padding:20px;border-radius:8px;box-shadow:0 0 10px rgba(0,0,0,.1)}
+        select,button{width:100%;padding:10px;margin:10px 0;box-sizing:border-box;border:1px solid #ccc;border-radius:5px}
+        button{background:#4CAF50;color:#fff;cursor:pointer}
+        button:disabled{background:#aaa;cursor:not-allowed}
+        button:hover:not(:disabled){background:#45a049}
+        .phone-list{list-style:none;padding:0}
+        .phone-list li{background:#f9f9f9;padding:10px;margin-bottom:10px;border:1px solid #ddd;border-radius:5px;display:flex;justify-content:space-between;align-items:center}
+        .delBtn{background:#e74c3c;color:#fff;border:none;padding:4px 8px;border-radius:3px;cursor:pointer}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>大凉国电话号码生成器</h1>
+
+        <!-- 模式选择 -->
+        <div>
+            <label><input type="radio" name="mode" value="central" checked onchange="toggleMode()"> 中央号码</label>
+            <label><input type="radio" name="mode" value="area" onchange="toggleMode()"> 地区号码</label>
+        </div>
+
+        <!-- 中央 -->
+        <div id="centralPanel">
+            <p>中央前缀：+3-000</p>
+        </div>
+
+        <!-- 地区三级联动 -->
+        <div id="areaPanel" style="display:none">
+            <select id="provinceSelect" onchange="updateCitySelect()">
+                <option value="">选择省</option>
+            </select>
+            <select id="citySelect" onchange="updateDistrictSelect()">
+                <option value="">选择市</option>
+            </select>
+            <select id="districtSelect">
+                <option value="">选择县/直辖区</option>
+            </select>
+        </div>
+
+        <button id="genBtn" onclick="generate()">生成电话号码</button>
+        <button onclick="clearHistory()">清空历史</button>
+
+        <h3>历史号码（本地保存）：</h3>
+        <ul class="phone-list" id="phoneList"></ul>
+    </div>
+
+    <script>
+        /* ================  完整地区号字典  ================ */
+        const fixedCodes={
+            "江中道":{
+                "忠州府":{"南城县":"260-001","北城县":"260-002"},
+                "边城府":{"边南县":"260-003","边北县":"260-004"},
+                "四部府":{"四一部":"260-005","四二部":"260-006"},
+                "中阴府":{"_central":"260-007"}
+            },
+            "川阳道":{
+                "中阳府":{"_central":"040-001"},
+                "周康府":{"_central":"040-002"},
+                "翊州府":{"_central":"040-003"}
+            },
+            "定州道":{
+                "顺庆府":{"_central":"030-001"},
+                "冞州府":{"_central":"030-002"},
+                "宝华府":{"_central":"030-003"},
+                "泽州府":{"_central":"030-004"},
+                "台陵府":{"_central":"030-005"}
+            },
+            "京畿道":{
+                "会州府":{"南会县":"020-001","阳关县":"020-002"},
+                "东华府":{"_central":"020-003"},
+                "东琉府":{"_central":"020-004"},
+                "圣天元堡":{"_central":"020-005"},
+                "圣颜宇翔堡":{"_central":"020-006"}
+            },
+            "西琉道":{
+                "山南府":{"_central":"050-001"},
+                "箕尾府":{"_central":"050-002"},
+                "川南林区":{"_central":"050-003"}
+            },
+            "嘉杭道":{
+                "余州府":{"_central":"060-001"},
+                "江南府":{"沁江公社":"060-002","江右公社":"060-003"}
+            },
+            "宪宽道":{
+                "顺都府":{"中都公社":"070-001","天中县":"070-002","江东县":"070-003"},
+                "神中府":{"_central":"070-004"},
+                "明安府":{"_central":"070-005"}
+            },
+            "平原道":{
+                "成邑府":{"_central":"080-001"},
+                "函州府":{"_central":"080-002"},
+                "中旸府":{"_central":"080-003"}
+            },
+            "庐睘道":{
+                "合江府":{"_central":"090-001"},
+                "淝阴府":{"_central":"090-002"},
+                "雍庆府":{"_central":"090-003"}
+            },
+            "朔口道":{
+                "中护府":{"_central":"100-001"},
+                "西和府":{"_central":"100-002"}
+            },
+            "广北道":{
+                "广宁府":{"_central":"110-001"},
+                "也州府":{"_central":"110-002"},
+                "光华府":{"_central":"110-003"},
+                "万池府":{"峡间县":"110-004","西地县":"110-005","南池县":"110-006","东涟县":"110-007"},
+                "邑川府":{"_central":"110-008"},
+                "望州府":{"_central":"110-009"},
+                "洲角府":{"_central":"110-010"}
+            },
+            "上再黎道":{
+                "口边府":{"_central":"120-001"},
+                "庆叻府":{"_central":"120-002"},
+                "海防港府":{"_central":"120-003"},
+                "西川府":{"_central":"120-004"},
+                "徐庆元府":{"_central":"120-005"}
+            },
+            "真和道":{
+                "海南府":{"_central":"130-001"}
+            },
+            "禹远道":{
+                "东宁府":{"_central":"140-001"},
+                "广平府":{"_central":"140-002"},
+                "文正府":{"_central":"140-003"},
+                "禹恒府":{"_central":"140-004"},
+                "晨州府":{"_central":"140-005"},
+                "清远府":{"_central":"140-006"},
+                "临少府":{"_central":"140-007"},
+                "夹川府":{"_central":"140-008"}
+            },
+            "景阳道":{
+                "宫阳府":{"_central":"150-001"},
+                "明华府":{"_central":"150-002"},
+                "晖良府":{"_central":"150-003"}
+            },
+            "九凉道":{
+                "高凉府":{"_central":"160-001"},
+                "平颖府":{"_central":"160-002"},
+                "民治府":{"民和县":"160-003","齐治县":"160-004"},
+                "中华府":{"_central":"160-005"},
+                "下凉府":{"_central":"160-006"},
+                "山州府":{"_central":"160-007"}
+            },
+            "安诸省":{
+                "勐开府":{"钦孜县":"170-001","众安区":"170-002"},
+                "越都府":{"_central":"170-003"},
+                "正太府":{"_central":"170-004"},
+                "邑州府":{"_central":"170-005"}
+            },
+            "德意志罗曼省":{
+                "圣柏林州":{"_central":"180-001"},
+                "厄斯曼大区":{"_central":"180-002"},
+                "哈得里奥大区":{"_central":"180-003"}
+            },
+            "巴萨克省":{
+                "哈拉苏喇府":{"_central":"190-001"},
+                "哈剌林特府":{"_central":"190-002"},
+                "蒙车利":{"_central":"190-003"},
+                "南额朵儿戈壁":{"_central":"190-004"},
+                "巴萨赛托":{"_central":"190-005"},
+                "乌塞提斯":{"_central":"190-006"},
+                "坎梅拉":{"_central":"190-007"},
+                "林边":{"_central":"190-008"},
+                "敖堂":{"_central":"190-009"},
+                "呼尔林那盟":{"_central":"190-010"},
+                "瑟日丹":{"_central":"190-011"},
+                "突厥利亚斯克":{"_central":"190-012"},
+                "乌察米尔台科列亚布卡拉维斯克":{"_central":"190-013"},
+                "迦伐罗":{"_central":"190-014"}
+            },
+            "南极边区都护":{
+                "仙隐都府":{"_central":"200-001"},
+                "真化部":{"_central":"200-002"},
+                "德化部":{"_central":"200-003"},
+                "妙上齐道部":{"_central":"200-004"},
+                "清一部":{"_central":"200-005"},
+                "色列那部":{"_central":"200-006"},
+                "光上部":{"_central":"200-007"},
+                "霍尔浩林部":{"_central":"200-008"}
+            },
+            "如意路":{
+                "如意城":{"_central":"210-001"},
+                "宝自在":{"_central":"210-002"},
+                "释那迦舍":{"_central":"210-003"},
+                "极乐城":{"_central":"210-004"},
+                "如意宝王":{"_central":"210-005"},
+                "毗琉璃波罗奈":{"_central":"210-006"},
+                "摩诃苏罗提诃":{"_central":"210-007"},
+                "波惹那舍那提":{"_central":"210-008"},
+                "福城":{"_central":"210-009"},
+                "净名":{"_central":"210-010"},
+                "晴凉":{"_central":"210-011"},
+                "云相":{"_central":"210-012"},
+                "摩尼":{"_central":"210-013"},
+                "吉庆":{"_central":"210-014"},
+                "光化":{"_central":"210-015"},
+                "旃檀海":{"_central":"210-016"},
+                "圆觉":{"_central":"210-017"},
+                "清泰":{"_central":"210-018"},
+                "空相":{"_central":"210-019"}
+            },
+            "碧色欢喜路":{
+                "未列具体府":{"_central":"220-001"}
+            },
+            "交港府":{
+                "滟阳县":{"_central":"230-001"},
+                "临渚县":{"_central":"230-002"},
+                "沙湾嘴区":{"_central":"230-003"},
+                "遥安公社":{"_central":"230-004"}
+            },
+            "热久府":{
+                "伊奈县":{"_central":"240-001"}
+            },
+            "襄川府":{
+                "域南县":{"_central":"250-001"}
+            },
+            "凡多府":{
+                "圣京公社":{"锦光街道":"010-001"},
+                "大都公社":{"中交街道":"010-002"},
+                "麦和经济开发区":{"_central":"010-003"},
+                "灵泽县":{"白昭乡":"010-004"},
+                "景民县":{"_central":"010-005"},
+                "屋桓县":{"南桓乡":"010-006"},
+                "西郊新区":{"_central":"010-007"},
+                "胜安新区":{"_central":"010-008"}
+            },
+            "依利伐亦省":{
+                "布哈拉府":{"_central":"270-001"},
+                "厄里亚那":{"_central":"270-002"}
+            },
+            "阿列夫泰州":{
+                "阿列夫泰郡":{"_central":"280-001"},
+                "不日那比尔大区":{"_central":"280-002"},
+                "契莫诃耶夫大区":{"_central":"280-003"},
+                "塞雅格琳堡大区":{"_central":"280-004"}
+            },
+            "友谊道":{
+                "法兰瑞":{"_central":"290-001"},
+                "康瑞":{"_central":"290-002"},
+                "云宝黛维诗":{"_central":"290-003"},
+                "波克布洛克":{"_central":"290-004"},
+                "多惹埃蒙":{"_central":"290-005"}
+            },
+            "阿底舍利道":{
+                "日库吉涅钦":{"_central":"300-001"},
+                "上康":{"_central":"300-002"},
+                "襄嘉措王":{"_central":"300-003"},
+                "乌尔那":{"_central":"300-004"},
+                "摩诃慕提斯":{"_central":"300-005"}
+            },
+            "普拉特尔坎邦":{
+                "阿瓦纳基":{"_central":"310-001"}
+            },
+            "玛提莫尔地区":{
+                "乌里耶兹":{"_central":"320-001"},
+                "乌察不斯":{"_central":"320-002"},
+                "乌察赛布斯•比耶输迦那":{"_central":"320-003"},
+                "摩诃萨林那":{"_central":"320-004"},
+                "布洛克":{"_central":"320-005"}
+            },
+            "密利耶菲尔达省":{
+                "里卡瑞亚":{"_central":"330-001"},
+                "伊泽克里斯提那":{"_central":"330-002"}
+            },
+            "尔喀布尼利克州":{
+                "莱诺":{"_central":"340-001"},
+                "杰西卡利亚":{"_central":"340-002"}
+            },
+            "国上道":{
+                "国上":{"_central":"350-001"}
+            },
+            "和谐道":{
+                "图哈达":{"_central":"360-001"}
+            },
+            "库亚拉省":{
+                "恩贡多":{"_central":"370-001"}
+            },
+            "瓦加马尔西南特区":{
+                "萨赫特":{"_central":"380-001"},
+                "穆巴扎哈姆":{"_central":"380-002"},
+                "锡尔瓦":{"_central":"380-003"},
+                "泽加万":{"_central":"380-004"},
+                "卡伊图姆":{"_central":"380-005"},
+                "阿巴尔卡":{"_central":"380-006"}
+            },
+            "工业道":{
+                "工业城":{"_central":"390-001"},
+                "大工府":{"_central":"390-002"},
+                "生物工程城":{"_central":"390-003"},
+                "日化城":{"_central":"390-004"},
+                "化学城":{"_central":"390-005"},
+                "物理城":{"_central":"390-006"}
+            },
+            "燕阳道":{
+                "解放府":{"_central":"400-001"},
+                "赤塔府":{"_central":"400-002"}
+            },
+            "北海省":{
+                "斯大林格勒林亚":{"_central":"410-001"},
+                "克亚保加港":{"_central":"410-002"},
+                "巴提乌":{"_central":"410-003"},
+                "明利察":{"_central":"410-004"}
+            },
+            "东方道":{
+                "大庭府":{"_central":"420-001"},
+                "极州府":{"_central":"420-002"},
+                "静灵府":{"_central":"420-003"},
+                "般若府":{"_central":"420-004"}
+            },
+            "宇联特区":{
+                "圣万德":{"_central":"430-001"}
+            },
+            "瀛凰特别行政区":{
+                "鹰咀市":{"_central":"440-001"},
+                "沙道市":{"_central":"440-002"},
+                "饶汀梁市":{"_central":"440-003"},
+                "原上市":{"_central":"440-004"},
+                "麓川市":{"_central":"440-005"}
+            },
+            "洢甸道":{
+                "会南府":{"_central":"450-001"},
+                "江口府":{"乂宁县":"450-002","江北县":"450-003","洢左县":"450-004"},
+                "高甸府":{"_central":"450-005"}
+            },
+            "巴娜道":{
+                "巴娜利亚":{"_central":"460-001"},
+                "桑格耶":{"_central":"460-002"},
+                "卡尼德":{"_central":"460-003"},
+                "雅雅亚奇":{"_central":"460-004"},
+                "萨雅耶":{"_central":"460-005"},
+                "提苏":{"_central":"460-006"},
+                "卡娜巴多":{"_central":"460-007"}
+            },
+            "长庆道":{
+                "圣金府":{"_central":"470-001"},
+                "曹阳府":{"庆阳县":"470-002"},
+                "深城府":{"生米县":"470-003","星可区":"470-004"},
+                "御州府":{"_central":"470-005"}
+            },
+            "关内道":{
+                "兴庆府":{"_central":"480-001"}
+            },
+            "梦幻道":{
+                "联和府":{"幻州县":"490-001"}
+            },
+            "海西省":{
+                "西海口":{"_central":"500-001"},
+                "牦城":{"_central":"500-002"},
+                "边海":{"_central":"500-003"},
+                "西山":{"_central":"500-004"},
+                "极西":{"西域边":"500-005"}
+            },
+            "京华府":{
+                "北地县":{"于乡":"510-001"},
+                "观阳军事区":{"_central":"510-002"},
+                "江边县":{"_central":"510-003"},
+                "户华公社":{"_central":"510-004"},
+                "庆阴县":{"_central":"510-005"},
+                "雍泠区":{"_central":"510-006"},
+                "陵明公社":{"_central":"510-007"},
+                "湖西区":{"临仓镇":"510-008"}
+            },
+            "上苏维埃省":{
+                "布尔什维格勒":{"_central":"520-001"}
+            },
+            "梵网教区":{
+                "毗阇耶城":{"_central":"530-001"},
+                "麦迪什布":{"_central":"530-002"},
+                "道上":{"_central":"530-003"},
+                "伊尔雅克":{"_central":"530-004"}
+            },
+            "苏丹省":{
+                "瓜哈图姆苏尔加":{"_central":"540-001"}
+            },
+            "上和乐道":{
+                "无明府":{"_central":"550-001"},
+                "上元府":{"_central":"550-002"},
+                "仓南府":{"滨湖公社":"550-003","湖南区":"550-004","仓阴县":"550-005"}
+            },
+            "江北道":{
+                "毛泽东府":{"_central":"560-001"},
+                "乌维拉日尼乌察别列斯克":{"_central":"560-002"}
+            },
+            "西江道":{
+                "沂昌府":{"_central":"570-001"},
+                "和东府":{"_central":"570-002"}
+            },
+            "必支府":{
+                "久弯县":{"_central":"580-001"}
+            },
+            "涧门道":{
+                "忻春府":{"_central":"590-001"},
+                "江间府":{"_central":"590-002"}
+            },
+            "易关省":{
+                "关中府":{"_central":"600-001"},
+                "西会府":{"_central":"600-002"}
+            },
+            "溟川路":{
+                "冥山府":{"_central":"610-001"}
+            },
+            "天极法路":{
+                "明正府":{"_central":"620-001"}
+            }
+        };
+
+        /* ==================================================== */
+        /* ==================  工具函数  ====================== */
+        /* ==================================================== */
+        function rand8(){return String(Math.floor(Math.random()*1e8)).padStart(8,'0');}
+        function saveList(arr){localStorage.setItem('phones',JSON.stringify(arr));}
+        function loadList(){return JSON.parse(localStorage.getItem('phones')||'[]');}
+
+        /* ==================================================== */
+        /* =================  界面初始化  ===================== */
+        /* ==================================================== */
+        window.onload=function(){
+            initProv();
+            renderList();
+            toggleMode();
+        };
+        function initProv(){
+            const p=document.getElementById('provinceSelect');
+            Object.keys(fixedCodes).forEach(prov=>{
+                const opt=document.createElement('option');
+                opt.value=prov; opt.textContent=prov;
+                p.appendChild(opt);
+            });
+        }
+        function toggleMode(){
+            const mode=document.querySelector('input[name="mode"]:checked').value;
+            document.getElementById('centralPanel').style.display= mode==='central' ? 'block' : 'none';
+            document.getElementById('areaPanel').style.display   = mode==='area'    ? 'block' : 'none';
+            checkGenBtn();
+        }
+        function checkGenBtn(){
+            const mode=document.querySelector('input[name="mode"]:checked').value;
+            const btn=document.getElementById('genBtn');
+            if(mode==='central'){btn.disabled=false;return;}
+            const p=document.getElementById('provinceSelect').value;
+            const c=document.getElementById('citySelect').value;
+            const d=document.getElementById('districtSelect').value;
+            btn.disabled=!(p&&c&&d);
+        }
+
+        /* ==================================================== */
+        /* ================  三级联动  ======================== */
+        /* ==================================================== */
+        function updateCitySelect(){
+            const pVal=document.getElementById('provinceSelect').value;
+            const citySel=document.getElementById('citySelect');
+            citySel.innerHTML='<option value="">选择市</option>';
+            document.getElementById('districtSelect').innerHTML='<option value="">选择县/直辖区</option>';
+            if(!pVal){checkGenBtn();return;}
+            Object.keys(fixedCodes[pVal]).forEach(city=>{
+                const opt=document.createElement('option');
+                opt.value=city; opt.textContent=city;
+                citySel.appendChild(opt);
+            });
+            checkGenBtn();
+        }
+        function updateDistrictSelect(){
+            const p=document.getElementById('provinceSelect').value;
+            const c=document.getElementById('citySelect').value;
+            const dSel=document.getElementById('districtSelect');
+            dSel.innerHTML='<option value="">选择县/直辖区</option>';
+            if(!p||!c){checkGenBtn();return;}
+            const districts=fixedCodes[p][c];
+            Object.keys(districts).forEach(dis=>{
+                const opt=document.createElement('option');
+                opt.value=dis; 
+                opt.textContent=dis==='_central' ? '直辖区' : dis;
+                dSel.appendChild(opt);
+            });
+            checkGenBtn();
+        }
+
+        /* ==================================================== */
+        /* ==================  生成号码  ===================== */
+        /* ==================================================== */
+        function generate(){
+            const mode=document.querySelector('input[name="mode"]:checked').value;
+            let phone='';
+            if(mode==='central'){
+                phone=`+3-000-${rand8()}`;
+            }else{
+                const p=document.getElementById('provinceSelect').value;
+                const c=document.getElementById('citySelect').value;
+                const d=document.getElementById('districtSelect').value;
+                if(!(p&&c&&d)){alert('请选择完整地区');return;}
+                const area=fixedCodes[p][c][d];
+                phone=`+3-${area}-${rand8()}`;
+            }
+            const list=loadList();
+            if(!list.includes(phone)){
+                list.push(phone);
+                saveList(list);
+            }
+            renderList();
+        }
+        function renderList(){
+            const ul=document.getElementById('phoneList');
+            ul.innerHTML='';
+            loadList().forEach(num=>{
+                const li=document.createElement('li');
+                li.textContent=num;
+                const del=document.createElement('button');
+                del.textContent='删除'; del.className='delBtn';
+                del.onclick=()=>removeNum(num);
+                li.appendChild(del);
+                ul.appendChild(li);
+            });
+        }
+        function removeNum(num){
+            let list=loadList();
+            list=list.filter(n=>n!==num);
+            saveList(list);
+            renderList();
+        }
+        function clearHistory(){
+            if(confirm('确定清空所有历史记录？')){
+                saveList([]);
+                renderList();
+            }
+        }
+    </script>
+</body>
+</html>
