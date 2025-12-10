@@ -204,7 +204,86 @@ document.getElementById("avatarUpload").addEventListener("change", function () {
             <div class="record-item"><span>解锁「星际疆域」基础星图</span><span class="record-time">2024-05-08 09:45</span></div>
             <div class="record-item"><span>首次完成身份验证登录</span><span class="record-time">2024-05-01 16:10</span></div>
         </div>
-    </section>
+    </section><!-- ========== 交通订票 start ========== -->
+<section id="transport" class="section" style="display:none;padding:20px;background:#fff;border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,.04);">
+  <h2 style="color:#004d99;margin-top:0;">交通订票</h2>
+
+  <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin-bottom:12px;">
+    <label>出发地：
+      <select id="sel-province-from"></select>
+    </label>
+
+    <label>出发 - 府：
+      <select id="sel-pref-from"></select>
+    </label>
+
+    <label>出发 - 县/区：
+      <select id="sel-county-from"></select>
+    </label>
+
+    <label>目的地：
+      <select id="sel-province-to"></select>
+    </label>
+
+    <label>目的 - 府：
+      <select id="sel-pref-to"></select>
+    </label>
+
+    <label>目的 - 县/区：
+      <select id="sel-county-to"></select>
+    </label>
+  </div>
+
+  <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:12px;">
+    <label>出行方式：
+      <select id="sel-mode">
+        <option value="train">火车</option>
+        <option value="highspeed">高铁</option>
+        <option value="plane">飞机</option>
+        <option value="ship">轮船</option>
+      </select>
+    </label>
+
+    <label>出发日期：
+      <input type="date" id="dep-date">
+    </label>
+
+    <label>出发时间（偏好）：
+      <input type="time" id="dep-time">
+    </label>
+
+    <label>舱位/座位类型：
+      <select id="sel-class">
+        <option value="standard">普通</option>
+        <option value="comfort">舒适</option>
+        <option value="first">头等/商务</option>
+      </select>
+    </label>
+
+    <label>乘客姓名：
+      <input type="text" id="passenger-name" placeholder="填写真实姓名">
+    </label>
+
+    <label>乘客数：
+      <input type="number" id="passenger-count" value="1" min="1" style="width:80px;">
+    </label>
+  </div>
+
+  <div style="margin-bottom:12px;">
+    <button id="btn-search" class="submit" style="padding:8px 16px;">查询可订车次/航班</button>
+    <button id="btn-clear" style="padding:8px 16px;margin-left:8px;">重置</button>
+  </div>
+
+  <!-- 搜索到的车次/航班列表 -->
+  <div id="results" style="margin-top:16px;"></div>
+
+  <!-- 已预订订单 -->
+  <div id="my-orders" style="margin-top:22px;">
+    <h3 style="margin:8px 0 6px;color:#333;">我的订单</h3>
+    <div id="orders-list"></div>
+  </div>
+</section>
+<!-- ========== 交通订票 end ========== -->
 </main><!-- ===== 桌面常驻功能集合 ===== -->
 <section class="section active" style="margin-top:var(--gap);">
     <h2>快捷功能区</h2>
@@ -440,87 +519,204 @@ function voteProposal(id, choice) {
 document.addEventListener("DOMContentLoaded", function () {
     renderProposals(5);
 });
-</script>
-<!-- ========== 交通订票 start ========== -->
-<section id="transport" class="section" style="display:none;padding:20px;background:#fff;border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,.04);">
-  <h2 style="color:#004d99;margin-top:0;">交通订票</h2>
+<script>
+// ========== 交通订票 UI 与逻辑 ==========
 
-  <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin-bottom:12px;">
-    <label>出发地：
-      <select id="sel-province-from"></select>
-    </label>
+// 如果页面没有 showSec 函数，提供一个简单兼容函数（以便在个人页内显示/隐藏 section）
+if (typeof showSec !== 'function') {
+  function showSec(id) {
+    // 隐藏所有 class="section"
+    document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'block';
+  }
+}
 
-    <label>出发 - 府：
-      <select id="sel-pref-from"></select>
-    </label>
+// 元素快捷引用
+const selProvFrom = document.getElementById('sel-province-from');
+const selPrefFrom = document.getElementById('sel-pref-from');
+const selCountyFrom = document.getElementById('sel-county-from');
+const selProvTo = document.getElementById('sel-province-to');
+const selPrefTo = document.getElementById('sel-pref-to');
+const selCountyTo = document.getElementById('sel-county-to');
 
-    <label>出发 - 县/区：
-      <select id="sel-county-from"></select>
-    </label>
+const selMode = document.getElementById('sel-mode');
+const depDate = document.getElementById('dep-date');
+const depTime = document.getElementById('dep-time');
+const selClass = document.getElementById('sel-class');
+const passengerName = document.getElementById('passenger-name');
+const passengerCount = document.getElementById('passenger-count');
 
-    <label>目的地：
-      <select id="sel-province-to"></select>
-    </label>
+const resultsDiv = document.getElementById('results');
+const ordersList = document.getElementById('orders-list');
 
-    <label>目的 - 府：
-      <select id="sel-pref-to"></select>
-    </label>
+const btnSearch = document.getElementById('btn-search');
+const btnClear = document.getElementById('btn-clear');
 
-    <label>目的 - 县/区：
-      <select id="sel-county-to"></select>
-    </label>
-  </div>
+// 初始化省列表（双向：出发 & 目的）
+function initProvinces() {
+  const provinces = Object.keys(regions);
+  fillSelect(selProvFrom, provinces, '选择省/道');
+  fillSelect(selProvTo, provinces, '选择省/道');
+  // 触发联动
+  selProvFrom.dispatchEvent(new Event('change'));
+  selProvTo.dispatchEvent(new Event('change'));
+}
 
-  <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:12px;">
-    <label>出行方式：
-      <select id="sel-mode">
-        <option value="train">火车</option>
-        <option value="highspeed">高铁</option>
-        <option value="plane">飞机</option>
-        <option value="ship">轮船</option>
-      </select>
-    </label>
+function fillSelect(sel, items, placeholder) {
+  sel.innerHTML = '';
+  if (placeholder) {
+    const opt = document.createElement('option');
+    opt.value = '';
+    opt.textContent = placeholder;
+    sel.appendChild(opt);
+  }
+  items.forEach(it => {
+    const opt = document.createElement('option');
+    opt.value = it;
+    opt.textContent = it;
+    sel.appendChild(opt);
+  });
+}
 
-    <label>出发日期：
-      <input type="date" id="dep-date">
-    </label>
+// 省 -> 府 联动
+selProvFrom.addEventListener('change', function() {
+  const prov = this.value;
+  const prefs = prov ? Object.keys(regions[prov]) : [];
+  fillSelect(selPrefFrom, prefs, '选择府');
+  selPrefFrom.dispatchEvent(new Event('change'));
+});
+selProvTo.addEventListener('change', function() {
+  const prov = this.value;
+  const prefs = prov ? Object.keys(regions[prov]) : [];
+  fillSelect(selPrefTo, prefs, '选择府');
+  selPrefTo.dispatchEvent(new Event('change'));
+});
 
-    <label>出发时间（偏好）：
-      <input type="time" id="dep-time">
-    </label>
+// 府 -> 县/区 联动
+selPrefFrom.addEventListener('change', function() {
+  const prov = selProvFrom.value;
+  const pref = this.value;
+  const counties = (prov && pref) ? (regions[prov][pref] || []) : [];
+  fillSelect(selCountyFrom, counties, '选择县/区');
+});
+selPrefTo.addEventListener('change', function() {
+  const prov = selProvTo.value;
+  const pref = this.value;
+  const counties = (prov && pref) ? (regions[prov][pref] || []) : [];
+  fillSelect(selCountyTo, counties, '选择县/区');
+});
 
-    <label>舱位/座位类型：
-      <select id="sel-class">
-        <option value="standard">普通</option>
-        <option value="comfort">舒适</option>
-        <option value="first">头等/商务</option>
-      </select>
-    </label>
+// 重置按钮
+btnClear.addEventListener('click', () => {
+  selProvFrom.selectedIndex = 0;
+  selPrefFrom.innerHTML = '';
+  selCountyFrom.innerHTML = '';
+  selProvTo.selectedIndex = 0;
+  selPrefTo.innerHTML = '';
+  selCountyTo.innerHTML = '';
+  depDate.value = '';
+  depTime.value = '';
+  selMode.value = 'train';
+  selClass.value = 'standard';
+  passengerName.value = '';
+  passengerCount.value = 1;
+  resultsDiv.innerHTML = '';
+});
 
-    <label>乘客姓名：
-      <input type="text" id="passenger-name" placeholder="填写真实姓名">
-    </label>
+// 生成“可订车次/航班” —— 前端根据选择即时生成真实感结果（非后端模拟）
+function generateTrips(params) {
+  // 参数：from,to,mode,date,time,class,count,name
+  // 生成规则：根据省-府-县的字符串 hash 及时间生成若干班次，保证每次同一配置稳定可复现
+  const { from, to, mode, date, time, cls } = params;
+  if (!from || !to || from===to) return [];
 
-    <label>乘客数：
-      <input type="number" id="passenger-count" value="1" min="1" style="width:80px;">
-    </label>
-  </div>
+  // 生成基准 seed
+  const seedStr = `${from}|${to}|${mode}|${date}|${time}|${cls}`;
+  let seed = 0;
+  for (let i=0;i<seedStr.length;i++) seed = (seed * 131 + seedStr.charCodeAt(i)) >>> 0;
 
-  <div style="margin-bottom:12px;">
-    <button id="btn-search" class="submit" style="padding:8px 16px;">查询可订车次/航班</button>
-    <button id="btn-clear" style="padding:8px 16px;margin-left:8px;">重置</button>
-  </div>
+  const count = 3 + (seed % 4); // 3~6 个班次
+  const trips = [];
+  for (let i=0;i<count;i++) {
+    // 生成时间（在用户期望时间附近）
+    const baseHour = time ? parseInt(time.split(':')[0],10) : 8 + (seed % 8);
+    const hour = (baseHour + i) % 24;
+    const minute = [0,15,30,45][(seed + i) % 4];
+    const depart = `${String(hour).padStart(2,'0')}:${String(minute).padStart(2,'0')}`;
 
-  <!-- 搜索到的车次/航班列表 -->
-  <div id="results" style="margin-top:16px;"></div>
+    // 耗时基于距离（字符串差异）和交通工具
+    const distFactor = (Math.abs(hashCode(from) - hashCode(to)) % 10) + 1;
+    let duration;
+    if (mode === 'plane') duration = Math.max(1, Math.round(distFactor / 3)) + 1; // hours
+    else if (mode === 'highspeed') duration = Math.max(1, Math.round(distFactor / 2)) + 1;
+    else if (mode === 'ship') duration = Math.max(2, Math.round(distFactor * 1.5));
+    else duration = Math.max(2, Math.round(distFactor)); // train
 
-  <!-- 已预订订单 -->
-  <div id="my-orders" style="margin-top:22px;">
-    <h3 style="margin:8px 0 6px;color:#333;">我的订单</h3>
-    <div id="orders-list"></div>
-  </div>
-</section>
-<!-- ========== 交通订票 end ========== -->
+    // 票价简单计算（基于时长、舱位系数、随机seed）
+    const classFactor = cls === 'first' ? 2.6 : (cls === 'comfort' ? 1.4 : 1.0);
+    const priceBase = Math.max(10, duration * 20);
+    const price = Math.round((priceBase + (seed % 50)) * classFactor);
+
+    trips.push({
+      id: `T-${Math.abs(seed ^ (i+1)).toString(36).toUpperCase()}`,
+      departTime: depart,
+      durationHours: duration,
+      price: price,
+      carrier: mode === 'plane' ? '天行航空' : (mode === 'highspeed' ? '飞速铁路' : (mode === 'ship' ? '瀛凰航运' : '大凉列车')),
+      seatsLeft: 10 + ((seed + i) % 40)
+    });
+  }
+  return trips;
+}
+
+// 辅助 hash 函数
+function hashCode(str) {
+  let h=0;
+  for (let i=0;i<str.length;i++) h = (h<<5) - h + str.charCodeAt(i);
+  return Math.abs(h);
+}
+
+// 渲染搜索结果
+function renderTrips(trips, params) {
+  resultsDiv.innerHTML = '';
+  if (!trips.length) {
+    resultsDiv.innerHTML = '<p style="color:#888;">未能生成可订班次（请检查出发地与目的地是否选择或不同）</p>';
+    return;
+  }
+  trips.forEach(t => {
+    const block = document.createElement('div');
+    block.style.border = '1px solid #eee';
+    block.style.padding = '10px';
+    block.style.marginBottom = '10px';
+    block.style.borderRadius = '6px';
+    block.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div style="font-weight:600;color:#222;">${params.from} → ${params.to}</div>
+          <div style="color:#666;font-size:13px;margin-top:6px;">
+            承运：${t.carrier} · 出发：${depDate.value || '—'} ${t.departTime} · 时长：${t.durationHours} 小时
+          </div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:18px;color:#004d99;font-weight:700;">${t.price} 通证</div>
+          <div style="color:#888;font-size:13px;">余票：${t.seatsLeft}</div>
+          <button style="margin-top:8px;padding:6px 10px;" onclick='bookTrip(${JSON.stringify(t).replace(/'/g,"\\'")}, ${JSON.stringify(params).replace(/'/g,"\\'")})'>预订</button>
+        </div>
+      </div>
+    `;
+    resultsDiv.appendChild(block);
+  });
+}
+
+// 预订函数（保存到 localStorage）
+function bookTrip(trip, params) {
+  const name = (passengerName.value || '匿名');
+  const count = Math.max(1, parseInt(passengerCount.value,10) || 1);
+  const booking = {
+    ticketNo: 'DL' + Date.now().toString(36).toUpperCase().slice(-8),
+    tripId: trip.id,
+    from: params.from, to: params.to,
 <script id="region-data">
 // ==== 大凉国省-府-县 三级数据（已拆出，直接放这里即可） ====
 const regions = {
@@ -746,204 +942,6 @@ const regions = {
   "天极法路": { "明正府": [] }
 };
 // ==== 结束 regions 数据 ====
-</script><script>
-// ========== 交通订票 UI 与逻辑 ==========
-
-// 如果页面没有 showSec 函数，提供一个简单兼容函数（以便在个人页内显示/隐藏 section）
-if (typeof showSec !== 'function') {
-  function showSec(id) {
-    // 隐藏所有 class="section"
-    document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
-    const el = document.getElementById(id);
-    if (el) el.style.display = 'block';
-  }
-}
-
-// 元素快捷引用
-const selProvFrom = document.getElementById('sel-province-from');
-const selPrefFrom = document.getElementById('sel-pref-from');
-const selCountyFrom = document.getElementById('sel-county-from');
-const selProvTo = document.getElementById('sel-province-to');
-const selPrefTo = document.getElementById('sel-pref-to');
-const selCountyTo = document.getElementById('sel-county-to');
-
-const selMode = document.getElementById('sel-mode');
-const depDate = document.getElementById('dep-date');
-const depTime = document.getElementById('dep-time');
-const selClass = document.getElementById('sel-class');
-const passengerName = document.getElementById('passenger-name');
-const passengerCount = document.getElementById('passenger-count');
-
-const resultsDiv = document.getElementById('results');
-const ordersList = document.getElementById('orders-list');
-
-const btnSearch = document.getElementById('btn-search');
-const btnClear = document.getElementById('btn-clear');
-
-// 初始化省列表（双向：出发 & 目的）
-function initProvinces() {
-  const provinces = Object.keys(regions);
-  fillSelect(selProvFrom, provinces, '选择省/道');
-  fillSelect(selProvTo, provinces, '选择省/道');
-  // 触发联动
-  selProvFrom.dispatchEvent(new Event('change'));
-  selProvTo.dispatchEvent(new Event('change'));
-}
-
-function fillSelect(sel, items, placeholder) {
-  sel.innerHTML = '';
-  if (placeholder) {
-    const opt = document.createElement('option');
-    opt.value = '';
-    opt.textContent = placeholder;
-    sel.appendChild(opt);
-  }
-  items.forEach(it => {
-    const opt = document.createElement('option');
-    opt.value = it;
-    opt.textContent = it;
-    sel.appendChild(opt);
-  });
-}
-
-// 省 -> 府 联动
-selProvFrom.addEventListener('change', function() {
-  const prov = this.value;
-  const prefs = prov ? Object.keys(regions[prov]) : [];
-  fillSelect(selPrefFrom, prefs, '选择府');
-  selPrefFrom.dispatchEvent(new Event('change'));
-});
-selProvTo.addEventListener('change', function() {
-  const prov = this.value;
-  const prefs = prov ? Object.keys(regions[prov]) : [];
-  fillSelect(selPrefTo, prefs, '选择府');
-  selPrefTo.dispatchEvent(new Event('change'));
-});
-
-// 府 -> 县/区 联动
-selPrefFrom.addEventListener('change', function() {
-  const prov = selProvFrom.value;
-  const pref = this.value;
-  const counties = (prov && pref) ? (regions[prov][pref] || []) : [];
-  fillSelect(selCountyFrom, counties, '选择县/区');
-});
-selPrefTo.addEventListener('change', function() {
-  const prov = selProvTo.value;
-  const pref = this.value;
-  const counties = (prov && pref) ? (regions[prov][pref] || []) : [];
-  fillSelect(selCountyTo, counties, '选择县/区');
-});
-
-// 重置按钮
-btnClear.addEventListener('click', () => {
-  selProvFrom.selectedIndex = 0;
-  selPrefFrom.innerHTML = '';
-  selCountyFrom.innerHTML = '';
-  selProvTo.selectedIndex = 0;
-  selPrefTo.innerHTML = '';
-  selCountyTo.innerHTML = '';
-  depDate.value = '';
-  depTime.value = '';
-  selMode.value = 'train';
-  selClass.value = 'standard';
-  passengerName.value = '';
-  passengerCount.value = 1;
-  resultsDiv.innerHTML = '';
-});
-
-// 生成“可订车次/航班” —— 前端根据选择即时生成真实感结果（非后端模拟）
-function generateTrips(params) {
-  // 参数：from,to,mode,date,time,class,count,name
-  // 生成规则：根据省-府-县的字符串 hash 及时间生成若干班次，保证每次同一配置稳定可复现
-  const { from, to, mode, date, time, cls } = params;
-  if (!from || !to || from===to) return [];
-
-  // 生成基准 seed
-  const seedStr = `${from}|${to}|${mode}|${date}|${time}|${cls}`;
-  let seed = 0;
-  for (let i=0;i<seedStr.length;i++) seed = (seed * 131 + seedStr.charCodeAt(i)) >>> 0;
-
-  const count = 3 + (seed % 4); // 3~6 个班次
-  const trips = [];
-  for (let i=0;i<count;i++) {
-    // 生成时间（在用户期望时间附近）
-    const baseHour = time ? parseInt(time.split(':')[0],10) : 8 + (seed % 8);
-    const hour = (baseHour + i) % 24;
-    const minute = [0,15,30,45][(seed + i) % 4];
-    const depart = `${String(hour).padStart(2,'0')}:${String(minute).padStart(2,'0')}`;
-
-    // 耗时基于距离（字符串差异）和交通工具
-    const distFactor = (Math.abs(hashCode(from) - hashCode(to)) % 10) + 1;
-    let duration;
-    if (mode === 'plane') duration = Math.max(1, Math.round(distFactor / 3)) + 1; // hours
-    else if (mode === 'highspeed') duration = Math.max(1, Math.round(distFactor / 2)) + 1;
-    else if (mode === 'ship') duration = Math.max(2, Math.round(distFactor * 1.5));
-    else duration = Math.max(2, Math.round(distFactor)); // train
-
-    // 票价简单计算（基于时长、舱位系数、随机seed）
-    const classFactor = cls === 'first' ? 2.6 : (cls === 'comfort' ? 1.4 : 1.0);
-    const priceBase = Math.max(10, duration * 20);
-    const price = Math.round((priceBase + (seed % 50)) * classFactor);
-
-    trips.push({
-      id: `T-${Math.abs(seed ^ (i+1)).toString(36).toUpperCase()}`,
-      departTime: depart,
-      durationHours: duration,
-      price: price,
-      carrier: mode === 'plane' ? '天行航空' : (mode === 'highspeed' ? '飞速铁路' : (mode === 'ship' ? '瀛凰航运' : '大凉列车')),
-      seatsLeft: 10 + ((seed + i) % 40)
-    });
-  }
-  return trips;
-}
-
-// 辅助 hash 函数
-function hashCode(str) {
-  let h=0;
-  for (let i=0;i<str.length;i++) h = (h<<5) - h + str.charCodeAt(i);
-  return Math.abs(h);
-}
-
-// 渲染搜索结果
-function renderTrips(trips, params) {
-  resultsDiv.innerHTML = '';
-  if (!trips.length) {
-    resultsDiv.innerHTML = '<p style="color:#888;">未能生成可订班次（请检查出发地与目的地是否选择或不同）</p>';
-    return;
-  }
-  trips.forEach(t => {
-    const block = document.createElement('div');
-    block.style.border = '1px solid #eee';
-    block.style.padding = '10px';
-    block.style.marginBottom = '10px';
-    block.style.borderRadius = '6px';
-    block.innerHTML = `
-      <div style="display:flex;justify-content:space-between;align-items:center;">
-        <div>
-          <div style="font-weight:600;color:#222;">${params.from} → ${params.to}</div>
-          <div style="color:#666;font-size:13px;margin-top:6px;">
-            承运：${t.carrier} · 出发：${depDate.value || '—'} ${t.departTime} · 时长：${t.durationHours} 小时
-          </div>
-        </div>
-        <div style="text-align:right;">
-          <div style="font-size:18px;color:#004d99;font-weight:700;">${t.price} 通证</div>
-          <div style="color:#888;font-size:13px;">余票：${t.seatsLeft}</div>
-          <button style="margin-top:8px;padding:6px 10px;" onclick='bookTrip(${JSON.stringify(t).replace(/'/g,"\\'")}, ${JSON.stringify(params).replace(/'/g,"\\'")})'>预订</button>
-        </div>
-      </div>
-    `;
-    resultsDiv.appendChild(block);
-  });
-}
-
-// 预订函数（保存到 localStorage）
-function bookTrip(trip, params) {
-  const name = (passengerName.value || '匿名');
-  const count = Math.max(1, parseInt(passengerCount.value,10) || 1);
-  const booking = {
-    ticketNo: 'DL' + Date.now().toString(36).toUpperCase().slice(-8),
-    tripId: trip.id,
-    from: params.from, to: params.to,
-
+</script>
 </body>
 </html>
