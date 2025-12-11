@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>大凉国 — 交通订票系统 (前端完整版)</title>
+<style>
+  :root{
+    --primary:#0066cc; --accent:#1abc9c; --muted:#888;
+    --ok:#2ecc71; --warn:#f1c40f; --bad:#e74c3c; --bg:#f4f6f8;
+  }
+  body{font-family: "Microsoft Yahei", Arial, Helvetica, sans-serif; margin:0; background:var(--bg); color:#222;}
+  header{background:var(--primary); color:#fff; padding:16px 20px;}
+  header h1{margin:0;font-size:20px;}
+  .nav{display:flex; gap:0.5rem; padding:10px 20px; background:#f0f4f8; align-items:center;}
+  .nav button{background:none;border:1px solid transparent;padding:8px 12px;border-radius:6px;cursor:pointer;}
+  .nav button.active{background:var(--primary); color:#fff; border-color:rgba(0,0,0,0.06);}
+  .layout{max-width:1200px;margin:18px auto;padding:14px;background:#fff;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.06);}
+  .flex{display:flex;gap:12px;align-items:center;}
+  .col{flex:1;}
+  label{display:block;font-size:13px;color:var(--muted); margin-top:8px;}
+  select,input[type="date"],input[type="text"],input[type="number"]{width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;background:#fff;}
+  .controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
+  .btn{background:var(--primary);color:#fff;padding:8px 12px;border:none;border-radius:6px;cursor:pointer;}
+  .btn.secondary{background:#fff;border:1px solid #ddd;color:#333;}
+  .section{margin-top:14px;padding:12px;border-radius:6px;background:#fbfdff;border:1px solid #eef3f8;}
+  .trips-list > div{border:1px solid #e6eef7;padding:10px;border-radius:6px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
+  .trip-meta{display:flex;gap:10px;align-items:center;}
+  .badge{padding:6px 10px;border-radius:6px;background:#eef7ff;color:var(--primary);font-weight:600;}
+  .seat-map{display:flex;flex-direction:column;gap:6px;padding:8px;background:#fff;border-radius:6px;border:1px solid #eee;}
+  .carriage{padding:8px;border-radius:6px;border:1px dashed #e9eef4;background:#fcfeff;}
+  .seat-row{display:flex;gap:6px;margin-bottom:6px;flex-wrap:wrap;}
+  .seat{width:34px;height:28px;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer;border:1px solid rgba(0,0,0,0.06);}
+  .seat.available{background:var(--ok);color:#fff;}
+  .seat.selected{background:var(--warn);color:#222;}
+  .seat.occupied{background:var(--bad);color:#fff;cursor:not-allowed;}
+  .panel{display:flex;gap:12px;align-items:flex-start;}
+  .panel .left{flex:1;}
+  .panel .right{width:320px;}
+  .passenger{padding:8px;border:1px solid #e6eef7;border-radius:6px;margin-bottom:6px;background:#fff;}
+  .orders-list div{border:1px solid #eef3f8;padding:8px;border-radius:6px;margin-bottom:8px;background:#fff;display:flex;justify-content:space-between;align-items:center;}
+  small.muted{color:var(--muted);}
+  .legend{display:flex;gap:8px;align-items:center;margin-top:8px;}
+  .legend .item{display:flex;gap:6px;align-items:center;}
+  .pill{padding:6px 8px;border-radius:6px;background:#f7f9fc;border:1px solid #eef3f8;}
+  footer{margin-top:12px;text-align:center;color:var(--muted);font-size:12px;padding:10px;}
+  @media (max-width:880px){.panel{flex-direction:column}.nav{overflow:auto}}
+</style>
+</head>
+<body>
+<header>
+  <h1>大凉国交通订票系统（前端完整版）</h1>
+  <div style="font-size:12px;color:#dbefff;margin-top:6px">功能：查询/选座/多乘客/订单保存/退票/打印（全部前端实现）</div>
+</header>
+
+<div class="nav" style="gap:8px;">
+  <button class="active" data-tab="booking">订票</button>
+  <button data-tab="orders">订单管理</button>
+  <button data-tab="manage">系统设置</button>
+</div>
+
+<div class="layout" id="app">
+
+  <!-- 订票区 -->
+  <div id="booking" class="tab-content">
+    <div class="panel">
+      <div class="left">
+        <div class="flex">
+          <div style="width:240px;">
+            <label>出发 — 省 / 府 / 县</label>
+            <select id="fromProvince"></select>
+            <select id="fromCity"></select>
+            <select id="fromCounty"></select>
+          </div>
+          <div style="width:240px;">
+            <label>到达 — 省 / 府 / 县</label>
+            <select id="toProvince"></select>
+            <select id="toCity"></select>
+            <select id="toCounty"></select>
+          </div>
+          <div style="width:180px;">
+            <label>出发日期</label>
+            <input type="date" id="travelDate" />
+            <label style="margin-top:8px">交通工具</label>
+            <select id="transportType">
+              <option value="train">火车 / 高铁</option>
+              <option value="plane">飞机</option>
+              <option value="ship">轮船</option>
+              <option value="starship">星舰</option>
+              <option value="metro">地铁</option>
+            </select>
+          </div>
+          <div style="width:220px;">
+            <label>速度等级</label>
+            <select id="speedSelect"></select>
+            <label style="margin-top:8px">服务范围</label>
+            <select id="rangeSelect"></select>
+          </div>
+        </div>
+
+        <div class="controls" style="margin-top:10px;">
+          <button class="btn" id="searchBtn">查询班次</button>
+          <button class="btn secondary" id="clearSaved">清除本地数据</button>
+          <div style="margin-left:auto;display:flex;gap:8px;align-items:center;">
+            <div class="pill">当前设备存储订单：<span id="ordersCount">0</span></div>
+          </div>
+        </div>
+
+        <div class="section" style="margin-top:12px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <h3 style="margin:0">班次列表</h3>
+            <div>
+              <label style="display:inline-block;margin-right:8px">排序：</label>
+              <select id="sortBy">
+                <option value="time">出发时间</option>
+                <option value="price">票价</option>
+                <option value="remaining">剩余座位</option>
+              </select>
+              <select id="sortDir"><option value="asc">升序</option><option value="desc">降序</option></select>
+            </div>
+          </div>
+
+          <div class="trips-list" id="tripsList" style="margin-top:8px;max-height:420px;overflow:auto"></div>
+        </div>
+      </div>
+
+      <div class="right">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <h3 style="margin:0">车票 / 乘客</h3>
+          <div><button class="btn secondary" id="btnLoadDemo">载入示例班次</button></div>
+        </div>
+
+        <div class="section">
+          <div id="selectedTripInfo"><small class="muted">尚未选择班次</small></div>
+          <div style="margin-top:10px;">
+            <h4 style="margin:0 0 8px 0">乘客列表</h4>
+            <div id="passengerArea"></div>
+            <div style="display:flex;gap:8px;margin-top:8px;">
+              <button class="btn" id="addPassengerBtn">+ 添加乘客</button>
+              <button class="btn secondary" id="clearPassengersBtn">清空乘客</button>
+            </div>
+          </div>
+
+          <div style="margin-top:10px;">
+            <h4 style="margin:0 0 8px 0">票价 / 操作</h4>
+            <div>票价明细：<div id="priceDetail" style="margin-top:6px"></div></div>
+            <div style="margin-top:8px;">
+              <button class="select-seat-btn" onclick="openSeatSelection(train.trainId, train.date)">选座</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- 选座区 -->
+  <div id="seatSelection" class="tab-content" style="display:none;">
+    <div style="display:flex;gap:12px;align-items:flex-start;">
+      <div style="flex:1;">
+        <h3>座位图</h3>
+        <div class="seat-map" id="seatMapContainer"></div>
+        <div class="legend">
+          <div class="item"><div style="width:18px;height:14px;background:var(--ok);border-radius:3px"></div><small class="muted">可选</small></div>
+          <div class="item"><div style="width:18px;height:14px;background:var(--warn);border-radius:3px"></div><small class="muted">已选</small></div>
+          <div class="item"><div style="width:18px;height:14px;background:var(--bad);border-radius:3px"></div><small class="muted">已售出/占用</small></div>
+        </div>
+      </div>
+
+      <div style="width:360px;">
+        <h3>乘客与座位</h3>
+        <div id="seatPassengerList"></div>
+        <div style="margin-top:12px;">
+          <div class="controls">
+            <button class="btn" id="confirmBookingBtn">确认并下单（保存订单）</button>
+            <button class="btn secondary" id="backToSearchBtn">返回班次</button>
+          </div>
+          <div style="margin-top:10px;"><small class="muted">下单后将保存到本地（localStorage），可在“订单管理”查看或退票。</small></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 订单管理 -->
+  <div id="orders" class="tab-content" style="display:none;">
+    <h3>历史订单</h3>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <label>筛选：</label>
+      <select id="orderFilterType"><option value="">全部交通</option><option value="train">火车/高铁</option><option value="plane">飞机</option><option value="ship">轮船</option><option value="starship">星舰</option></select>
+      <label>日期：</label>
+      <input type="date" id="orderFilterDate">
+      <button class="btn" id="filterOrdersBtn">筛选</button>
+      <button class="btn secondary" id="exportOrdersBtn">导出订单（JSON）</button>
+    </div>
+
+    <div class="orders-list" id="ordersList" style="margin-top:12px;"></div>
+  </div>
+
+  <!-- 管理/设置 -->
+  <div id="manage" class="tab-content" style="display:none;">
+    <h3>系统设置 & 调试</h3>
+    <div>
+      <button class="btn" id="regenTripsBtn">重新生成演示班次（覆盖）</button>
+      <button class="btn secondary" id="restoreStateBtn">恢复示例存档（覆盖当前）</button>
+      <button class="btn secondary" id="clearLocalBtn">清除 localStorage（警告）</button>
+      <div style="margin-top:8px"><small class="muted">说明：localStorage 用于保存订单、已售座位等模拟数据。清除后无法恢复。</small></div>
+    </div>
+  </div>
+
+</div>
+
+<footer>大凉国 · 交通订票前端模拟器 — 全部运行在浏览器内 | 数据持久化使用 localStorage</footer>
+
+<script>
+/* ============================
+   基础数据（使用用户提供的完整行政区 data）
+   ============================ */
+  // 数据：省 -> 地级 -> 县级（已清理括号说明，按要求分层）
+  const data = {
+    "江中道": {
+      "忠州府": ["南城县","北城县"],
+      "边城府": ["边南县","边北县"],
+      "四部府": ["四一部","四二部"],
+      "中阴府": ["中阴聚落"]
+    },
+    "川阳道": {
+      "中阳府": ["高陵县"],
+      "周康府": ["采邑公社"],
+      "翊州府": ["翊州聚落"]
+    },
+    "定州道": {
+      "顺庆府": ["顺庆县"],
+      "冞州府": ["忘忧区"],
+      "宝华府": ["宝华县"],
+      "泽州府": ["泽州县"],
+      "台陵府": ["天采公社"]
+    },
+    "京畿道": {
+      "会州府": ["南会县","阳关县"],
+      "东华府": ["东华县"],
+      "东琉府": ["东琉璃山脉自然生态保护区"],
+      "圣天元堡": ["圣天堡聚落"],
+      "圣颜宇翔堡": ["文於公社"]
+    },
+    "西琉道": {
+      "山南府": ["卑赧区"],
+      "箕尾府": ["原南县"],
+      "川南林区": ["灵山县"]
+    },
+    "嘉杭道": {
+      "余州府": ["锦上公社"],
+      "江南府": ["沁江公社","江右公社"]
+    },
+    "宪宽道": {
+      "顺都府": ["中都公社","天中县","江东县"],
+      "神中府": ["神中县"],
+      "明安府": ["明安县"]
+    },
+    "平原道": {
+      "成邑府": ["圣都公社"],
+      "函州府": ["函州县"],
+      "中旸府": ["中旸县"]
+    },
+    "庐睘道": {
+      "合江府": ["平至县"],
+      "淝阴府": ["淝阴县"],
+      "雍庆府": ["雍庆县"]
+    },
+    "朔口道": {
+      "中护府": ["关南县"],
+      "西和府": ["山戊县"]
+    },
+    "广北道": {
+      "广宁府": ["广宁县"],
+      "也州府": ["也州县"],
+      "光华府": ["光华县"],
+      "万池府": ["峡间县","西地县","南池县","东涟县"],
+      "邑川府": ["岭南县"],
+      "望州府": ["染陂县"],
+      "洲角府": ["临沙县"]
+    },
+    "上再黎道": {
+      "口边府": ["口边县"],
+      "庆叻府": ["庆叻县"],
+      "海防港府": ["海防聚落"],
+      "西川府": ["西川县"],
+      "徐庆元府": []
+    },
+    "真和道": {
+      "海南府": ["海南县"]
+    },
+    "禹远道": {
+      "东宁府": ["东宁县"],
+      "广平府": ["广平县"],
+      "文正府": ["文正县"],
+      "禹恒府": ["禹恒县"],
+      "晨州府": ["晨州县"],
+      "清远府": ["清远县"],
+      "临少府": ["艾恒公社"],
+      "夹川府": ["夹川县"]
+    },
+    "景阳道": {
+      "宫阳府": ["花涯区","江陵区"],
+      "明华府": ["明华县"],
+      "晖良府": ["晖良县"]
+    },
+    "九凉道": {
+      "高凉府": ["高凉县"],
+      "平颖府": ["平颖县"],
+      "民治府": ["民和县","齐治县"],
+      "中华府": [],
+      "下凉府": [],
+      "山州府": []
+    },
+    "安诸省": {
+      "勐开府": ["钦孜县","众安区"],
+      "越都府": ["上安县"],
+      "正太府": ["正太县"],
+      "邑州府": ["尚竹区"]
+    },
+    "德意志罗曼省": {
+      "圣柏林郡": ["克拉维亚县"],
+      "厄斯曼大区": ["厄斯曼聚落"],
+      "哈得里奥大区": ["哈得里奥聚落"]
+    },
+    "巴萨克省": {
+      "哈拉苏喇府": ["哈拉苏喇县"],
+      "哈剌林特府": ["哈剌林特县"],
+      "蒙车利": ["蒙车利聚落"],
+      "南额朵儿戈壁": ["戈壁聚落"],
+      "巴萨赛托": ["那加克列亚郡"],
+      "乌塞提斯": ["列尔那郡"],
+      "坎梅拉": ["乌加尔郡"],
+      "林边": ["林边聚落"],
+      "敖堂": ["敖堂聚落"],
+      "呼尔林那盟": ["喀拉尔旗"],
+      "瑟日丹": ["瑟日那聚落"],
+      "突厥利亚斯克": [],
+      "乌察米尔台科列亚布卡拉维斯克": [],
+      "迦伐罗": []
+    },
+    "南极边区都护": {
+      "仙隐都府": [],
+      "真化部": [],
+      "德化部": [],
+      "妙上齐道部": [],
+      "清一部": [],
+      "色列那部": [],
+      "光上部": [],
+      "霍尔浩林部": []
+    },
+    "如意路": {
+      "如意城": [],
+      "宝自在": [],
+      "释那迦舍": [],
+      "极乐城": [],
+      "如意宝王": [],
+      "毗琉璃波罗奈": [],
+      "摩诃苏罗提诃": [],
+      "波惹那舍那提": [],
+      "福城": [],
+      "净名": [],
+      "晴凉": [],
+      "云相": [],
+      "摩尼": [],
+      "吉庆": [],
+      "光化": [],
+      "旃檀海": [],
+      "圆觉": [],
+      "清泰": [],
+      "空相": []
+    },
+    "碧色欢喜路": {
+      "未列具体府": []
+    },
+    "交港府": {
+      "滟阳县": [],
+      "临渚县": [],
+      "沙湾嘴区": [],
+      "遥安公社": []
+    },
+    "热久府": {
+      "伊奈县": []
+    },
+    "襄川府": {
+      "域南县": []
+    },
+    "凡多府": {
+      "圣京公社": ["锦光街道"],
+      "大都公社": ["中交街道"],
+      "麦和经济开发区": [],
+      "灵泽县": ["白昭乡"],
+      "景民县": [],
+      "屋桓县": ["南桓乡"],
+      "西郊新区": [],
+      "胜安新区": ["观上区"]
+    },
+    "依利伐亦省": {
+      "布哈拉郡": ["布哈拉聚落"],
+      "厄里亚那": ["厄里亚那聚落"],
+      "阿扎伊尔沙漠区": []
+    },
+    "阿列夫泰州": {
+      "阿列夫泰郡": ["阿列夫泰聚落"],
+      "不日那比尔大区": ["不日那比尔聚落"],
+      "契莫诃耶夫大区": ["契莫诃耶夫聚落"],
+      "塞雅格琳堡大区": ["塞雅格琳堡聚落"]
+    },
+    "友谊道": {
+      "法兰瑞": ["法兰瑞聚落"],
+      "康瑞": ["康瑞聚落"],
+      "云宝黛维诗": ["云宝黛维诗聚落"],
+      "波克布洛克": ["波克布洛克聚落"],
+      "多惹埃蒙": []
+    },
+    "阿底舍利道": {
+      "日库吉涅钦": ["日库吉涅钦聚落"],
+      "上康": ["上康聚落"],
+      "襄嘉措王": ["襄嘉措王聚落"],
+      "乌尔那": ["乌尔那聚落"],
+      "摩诃慕提斯": ["摩诃慕提斯聚落"]
+    },
+    "普拉特尔坎邦": {
+      "阿瓦纳基": [],
+      "卡克斯提亚雨林区": []
+    },
+    "玛提莫尔地区": {
+      "乌里耶兹": [],
+      "乌察不斯": [],
+      "乌察赛布斯•比耶输迦那": [],
+      "摩诃萨林那": [],
+      "布洛克": []
+    },
+    "密利耶菲尔达省": {
+      "里卡瑞亚": [],
+      "伊泽克里斯提那": []
+    },
+    "尔喀布尼利克州": {
+      "莱诺": [],
+      "杰西卡利亚": []
+    },
+    "国上道": {
+      "国上": []
+    },
+    "和谐道": {
+      "图哈达": []
+    },
+    "库亚拉省": {
+      "恩贡多": []
+    },
+    "瓦加马尔西南特区": {
+      "萨赫特": [], "穆巴扎哈姆": [], "锡尔瓦": [], "泽加万": [], "卡伊图姆": [], "阿巴尔卡": []
+    },
+    "工业道": {
+      "工业城": [], "大工府": [], "生物工程城": [], "日化城": [], "化学城": [], "物理城": []
+    },
+    "燕阳道": {
+      "解放府": [], "赤塔府": []
+    },
+    "北海省": {
+      "斯大林格勒林亚": [], "克亚保加港": [], "巴提乌": [], "明利察": []
+    },
+    "东方道": {
+      "大庭府": ["临琉县","邶水区"], "极州府": ["沿厄县"], "静灵府": [], "般若府": []
+    },
+    "宇联特区": {
+      "圣万德": []
+    },
+    "瀛凰特别行政区": {
+      "鹰咀市": [], "沙道市": [], "饶汀梁市": [], "原上市": [], "麓川市": []
+    },
+    "洢甸道": {
+      "会南府": [], "江口府": ["乂宁县","江北县","洢左县"], "高甸府": []
+    },
+    "巴娜道": {
+      "巴娜利亚": [], "桑格耶": [], "卡尼德": [], "雅雅亚奇": [], "萨雅耶": [], "提苏": [], "卡娜巴多": []
+    },
+    "长庆道": {
+      "圣金府": [], "曹阳府": ["庆阳县"], "深城府": ["生米县","星可区"], "御州府": []
+    },
+    "关内道": {
+      "兴庆府": ["隰县"]
+    },
+    "梦幻道": {
+      "联和府": ["幻州县"]
+    },
+    "海西省": {
+      "西海口": [], "牦城": [], "边海": [], "西山": [], "极西": ["西域边"]
+    },
+    "京华府": {
+      "北地县": ["于乡"], "观阳军事区": [], "江边县": [], "户华公社": [], "庆阴县": [], "雍泠区": [], "陵明公社": [], "湖西区": ["临仓镇"]
+    },
+    "上苏维埃省": {
+      "布尔什维格勒": []
+    },
+    "梵网教区": {
+      "毗阇耶城": [], "麦迪什布": [], "道上": [], "伊尔雅克": []
+    },
+    "苏丹省": {
+      "瓜哈图姆苏尔加": []
+    },
+    "上和乐道": {
+      "无明府": [], "上元府": ["圆明公社","自在县"], "仓南府": ["滨湖公社","湖南区","仓阴县"]
+    },
+    "江北道": {
+      "毛泽东府": [], "乌维拉日尼乌察别列斯克": []
+    },
+    "西江道": {
+      "沂昌府": ["昌西县","昌东县"], "和东府": []
+    },
+    "必支府": {
+      "久弯县": []
+    },
+    "涧门道": {
+      "忻春府": ["塔古县","涧源区"], "江间府": []
+    },
+    "易关省": {
+      "关中府": [], "西会府": ["银陵区"]
+    },
+    "溟川路": {
+      "冥山府": []
+    },
+    "天极法路": {
+      "明正府": []
+    }
+  };
+
+/* ============================
+   速度等级与范围（根据你提供规则整理）
+   ============================ */
+const speedLevels = [
+  {code:"OL", cn:"超光连", en:"Over-Lightspeed"},
+  {code:"L", cn:"光速", en:"Lightspeed"},
+  {code:"S", cn:"超速", en:"Superspeed"},
+  {code:"SH", cn:"超高速", en:"Super-Highspeed"},
+  {code:"H", cn:"高速", en:"Highspeed"},
+  {code:"MH", cn:"中高速", en:"Middle-Highspeed"},
+  {code:"M", cn:"中速", en:"Middlespeed"},
+  {code:"MS", cn:"中超连", en:"MidSuper"},
+  {code:"SF", cn:"超快进", en:"Super-Fast"},
+  {code:"F", cn:"快速", en:"Fast"},
+  {code:"MF", cn:"中快速", en:"Middle-Fast"},
+  {code:"FM", cn:"快中速", en:"Fast-Middle"},
+  {code:"FS", cn:"快超连", en:"Fast-Super"},
+  {code:"HS", cn:"高超速", en:"High-Super"},
+  {code:"HL", cn:"高光建", en:"High-Lighted"},
+  {code:"FL", cn:"快光建", en:"Fast-Lighted"},
+  {code:"LL", cn:"低光速", en:"Low-Lightspeed"},
+  {code:"LF", cn:"低快连", en:"Low-Fast"},
+  {code:"LM", cn:"低中速", en:"Low-Middle"},
+  {code:"SS", cn:"特超速", en:"Special-Super"},
+  {code:"SpM", cn:"特中速", en:"Special-Middle"},
+  {code:"SpL", cn:"特低连", en:"Special-Low"}
+];
+
+const rangeLevels = [
+  {code:"Se", cn:"星际", en:"Interstellar"},
+  {code:"N", cn:"国际", en:"International"},
+  {code:"Sa", cn:"洲际", en:"Intercontinental"},
+  {code:"P", cn:"省际", en:"Interprovincial"},
+  {code:"M", cn:"市际", en:"Intermunicipal"},
+  {code:"Cu", cn:"县际", en:"Intercounty"},
+  {code:"R", cn:"乡际", en:"Rural"},
+  {code:"T", cn:"镇际", en:"Intertown"}
+];
+
+/* ============================
+   本地持久化键
+   ============================ */
+const LS_KEYS = {
+  ORDERS: 'dg_orders_v1',
+  TRIPS: 'dg_trips_v1',
+  BOOKINGS: 'dg_bookings_v1' // per-trip seat occupancy persistent
+};
+
+/* ============================
+   初始化 UI 下拉
+   ============================ */
+const fromProvinceEl = document.getElementById('fromProvince');
+const fromCityEl = document.getElementById('fromCity');
+const fromCountyEl = document.getElementById('fromCounty');
+const toProvinceEl = document.getElementById('toProvince');
+const toCityEl = document.getElementById('toCity');
+const toCountyEl = document.getElementById('toCounty');
+
+function fillProvince(selectEl){
+  selectEl.innerHTML = '<option value="">-- 选择省/道 --</option>';
+  Object.keys(data).forEach(p => selectEl.insertAdjacentHTML('beforeend', `<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`));
+}
+function fillCity(province, citySelect){
+  citySelect.innerHTML = '<option value="">-- 选择府/市 --</option>';
+  if (!province || !data[province]) return;
+  Object.keys(data[province]).forEach(c => citySelect.insertAdjacentHTML('beforeend', `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`));
+}
+function fillCounty(province, city, countySelect){
+  countySelect.innerHTML = '<option value="">-- 选择县/区 --</option>';
+  if (!province || !city || !data[province] || !data[province][city]) return;
+  const arr = data[province][city];
+  if(arr && arr.length>0){
+    arr.forEach(co => countySelect.insertAdjacentHTML('beforeend', `<option value="${escapeHtml(co)}">${escapeHtml(co)}</option>`));
+  } else {
+    // 当没有县级，允许二级作为选择项
+    countySelect.insertAdjacentHTML('beforeend', `<option value="${escapeHtml(city)}">${escapeHtml(city)}</option>`);
+  }
+}
+fillProvince(fromProvinceEl); fillProvince(toProvinceEl);
+
+fromProvinceEl.addEventListener('change', ()=>{ fillCity(fromProvinceEl.value, fromCityEl); fromCountyEl.innerHTML='<option value="">-- 选择县/区 --</option>'; });
+toProvinceEl.addEventListener('change', ()=>{ fillCity(toProvinceEl.value, toCityEl); toCountyEl.innerHTML='<option value="">-- 选择县/区 --</option>'; });
+fromCityEl.addEventListener('change', ()=> fillCounty(fromProvinceEl.value, fromCityEl.value, fromCountyEl));
+toCityEl.addEventListener('change', ()=> fillCounty(toProvinceEl.value, toCityEl.value, toCountyEl));
+
+/* 速度等级、范围下拉 */
+const speedSelect = document.getElementById('speedSelect');
+speedLevels.forEach(s => speedSelect.insertAdjacentHTML('beforeend', `<option value="${s.code}">${s.cn} • ${s.en} (${s.code})</option>`));
+const rangeSelect = document.getElementById('rangeSelect');
+rangeLevels.forEach(r => rangeSelect.insertAdjacentHTML('beforeend', `<option value="${r.code}">${r.cn} • ${r.en} (${r.code})</option>`));
+/* ============================
+   工具函数
+   ============================ */
+function uid(len=6){ const s='0123456789'; let r=''; for(let i=0;i<len;i++) r+=s[Math.floor(Math.random()*s.length)]; return r; }
+function escapeHtml(s){ return (''+s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function nowISO(){ return new Date().toISOString(); }
+function loadFromLS(key, fallback){ try{ return JSON.parse(localStorage.getItem(key)||'null')||fallback; }catch(e){ return fallback; } }
+function saveToLS(key, obj){ localStorage.setItem(key, JSON.stringify(obj)); }
+
+/* ============================
+   行程与班次生成规则
+   - 命名：范围代码 + 速度代码 + 3位序号（示例：SeSF001）
+   - 每班次存储到 localStorage(TRIPS)，并且为每个班次维护座位占用 BOOKING
+   ============================ */
+
+let TRIPS = loadFromLS(LS_KEYS.TRIPS, {});      // 存储所有生成班次 {tripId: tripObject}
+let BOOKINGS = loadFromLS(LS_KEYS.BOOKINGS, {}); // {tripId: {seats: [false,true,...]}}
+let ORDERS = loadFromLS(LS_KEYS.ORDERS, []);    // 订单数组
+
+function generateTripId(rangeCode, speedCode, seq){
+  const num = (''+seq).padStart(3,'0');
+  return `${rangeCode}${speedCode}${num}`;
+}
+
+// 生成演示班次（按用户选定的 from/to/date/transport/speed/range）
+// 如果已有相同 tripId 的班次，保留已有 BOOKING 状态
+function generateTripsForQuery({from,to,date,transport,speed,range, count=6}){
+  const trips = [];
+  for(let i=0;i<count;i++){
+    const id = generateTripId(range||'P', speed||'H', Math.floor(Math.random()*900)+100*i%900);
+    // 时间简单模拟：出发时间 08:00 + i 小时，耗时 2~6 小时
+    const departHour = 8 + i;
+    const depart = `${(departHour%24).toString().padStart(2,'0')}:00`;
+    const dur = 2 + (i%5);
+    const arriveHour = (departHour + dur) % 24;
+    const arrive = `${arriveHour.toString().padStart(2,'0')}:30`;
+    // 票价基于速度与距离（距离用简单权重）
+    const speedWeight = (speedLevels.find(s=>s.code===speed)? speedLevels.find(s=>s.code===speed).code.length : 1);
+    const basePrice = 50 + (i*12) + (Math.abs(hashString(from)-hashString(to))%50);
+    const price = Math.max(10, Math.round(basePrice * (1 + (i%4)*0.08)));
+    // 座位布局：根据transport和speed设置carriage/rows/cols
+    const layout = layoutForTransport(transport, speed);
+    const trip = {
+      tripId: id,
+      from, to, date, transport, speed, range,
+      depart, arrive, durationHours: dur, price,
+      layout, created: nowISO()
+    };
+    // store if not exists
+    if(!TRIPS[id]) TRIPS[id]=trip;
+    // ensure BOOKINGS has entry
+    if(!BOOKINGS[id]) BOOKINGS[id] = { seats: new Array(layout.totalSeats).fill(false) };
+    trips.push(TRIPS[id]);
+  }
+  saveToLS(LS_KEYS.TRIPS, TRIPS);
+  saveToLS(LS_KEYS.BOOKINGS, BOOKINGS);
+  return trips;
+}
+
+function hashString(s){ let h=0; for(let i=0;i<s.length;i++) h=(h<<5)-h + s.charCodeAt(i); return Math.abs(h); }
+
+/* 座位布局策略：返回 {carriages:[{name,rows,cols,seatTypesArray}], totalSeats} */
+function layoutForTransport(transport, speed){
+  // 默认策略，按交通类型调整车厢数、行数、列数、座位类型
+  // 每个座位包含 type 字符串（例如 硬座/软座/经济舱/豪华舱）
+  let carriages=[]; let totalSeats=0;
+  if(transport==='train' || transport==='metro'){
+    // 火车：车厢 4，行 6，列 4 => 96 seats
+    const carriageCount = 4;
+    for(let c=1;c<=carriageCount;c++){
+      const rows = 6; const cols = 4;
+      const seatTypes = new Array(rows*cols).fill(chooseSeatTypeForTrain(speed));
+      carriages.push({name:`车厢${c}`, rows, cols, seatTypes});
+      totalSeats += rows*cols;
+    }
+  } else if(transport==='plane'){
+    // 飞机：舱位 3 (经济/商务/头等)
+    carriages.push({name:'头等舱', rows:4, cols:4, seatTypes: new Array(4*4).fill('头等舱')});
+    carriages.push({name:'商务舱', rows:6, cols:4, seatTypes: new Array(6*4).fill('商务舱')});
+    carriages.push({name:'经济舱', rows:12, cols:6, seatTypes: new Array(12*6).fill('经济舱')});
+    totalSeats = 4*4 + 6*4 + 12*6;
+  } else if(transport==='ship' || transport==='starship'){
+    // 船/星舰：舱位 3
+    carriages.push({name:'豪华舱', rows:4, cols:4, seatTypes:new Array(4*4).fill('豪华舱')});
+    carriages.push({name:'舒适舱', rows:6, cols:5, seatTypes:new Array(6*5).fill('舒适舱')});
+    carriages.push({name:'经济舱', rows:10, cols:6, seatTypes:new Array(10*6).fill('经济舱')});
+    totalSeats = 4*4 + 6*5 + 10*6;
+  } else {
+    // fallback：一节车厢
+    carriages.push({name:'车厢1', rows:8, cols:4, seatTypes:new Array(8*4).fill('普通')});
+    totalSeats = 8*4;
+  }
+  return {carriages, totalSeats};
+}
+function chooseSeatTypeForTrain(speed){
+  // roughly map speed to seat types
+  if(['OL','L','SH','HS','HL','FL'].includes(speed)) return '商务座';
+  if(['H','SF','FS'].includes(speed)) return '一等座';
+  if(['MH','M','MF','FM'].includes(speed)) return '二等座';
+  return '硬座';
+}
+
+/* ============================
+   UI 逻辑：查询班次、渲染、选座、下单、订单管理
+   ============================ */
+
+const tripsListEl = document.getElementById('tripsList');
+const searchBtn = document.getElementById('searchBtn');
+const sortByEl = document.getElementById('sortBy');
+const sortDirEl = document.getElementById('sortDir');
+const ordersCountEl = document.getElementById('ordersCount');
+
+function refreshOrdersCount(){ ORDERS = loadFromLS(LS_KEYS.ORDERS, []); ordersCountEl.textContent = ORDERS.length; }
+refreshOrdersCount();
+
+/* 查询班次 */
+searchBtn.addEventListener('click', ()=> {
+  const from = fromCountyEl.value || fromCityEl.value || fromProvinceEl.value;
+  const to = toCountyEl.value || toCityEl.value || toProvinceEl.value;
+  const date = document.getElementById('travelDate').value;
+  const transport = document.getElementById('transportType').value;
+  const speed = document.getElementById('speedSelect').value;
+  const range = document.getElementById('rangeSelect').value;
+  if(!from || !to || !date){ alert('请完整选择出发地/目的地/日期'); return; }
+  const trips = generateTripsForQuery({from,to,date,transport,speed,range,count:6});
+  renderTrips(trips);
+});
+
+/* 渲染班次列表 */
+function renderTrips(trips){
+  // 支持排序
+  const sortBy = sortByEl.value;
+  const dir = sortDirEl.value;
+  trips.sort((a,b)=>{
+    if(sortBy==='time') { return compareTime(a.depart,b.depart); }
+    if(sortBy==='price') return a.price - b.price;
+    if(sortBy==='remaining'){
+      const ra = countRemainingSeats(a.tripId || a.tripId), rb = countRemainingSeats(b.tripId || b.tripId);
+      return ra - rb;
+    }
+    return 0;
+  });
+  if(dir==='desc') trips.reverse();
+
+  tripsListEl.innerHTML = '';
+  trips.forEach(trip=>{
+    const rem = countRemainingSeats(trip.tripId);
+    const div = document.createElement('div');
+    div.innerHTML = `<div class="trip-meta">
+        <div style="min-width:120px"><span class="badge">${escapeHtml(trip.tripId)}</span></div>
+        <div><b>${escapeHtml(trip.from)}</b> → <b>${escapeHtml(trip.to)}</b></div>
+        <div><small class="muted">${escapeHtml(trip.depart)} → ${escapeHtml(trip.arrive)} （${trip.durationHours}h）</small></div>
+        <div><b>￥${trip.price}</b></div>
+        <div><small class="muted">剩余：${rem}</small></div>
+      </div>
+      <div>
+        <button class="btn" data-trip="${escapeHtml(trip.tripId)}">选座 / 购票</button>
+      </div>`;
+    tripsListEl.appendChild(div);
+  });
+
+  // attach handlers
+  tripsListEl.querySelectorAll('button[data-trip]').forEach(btn=>
+  {btn.addEventListener('click', (e)=>{
+      const id = btn.dataset.trip;
+      selectTripForBooking(id);
+    });
+  });
+}
+
+/* compare HH:MM */
+function compareTime(a,b){
+  const pa=a.split(':').map(Number), pb=b.split(':').map(Number);
+  return (pa[0]*60+pa[1]) - (pb[0]*60+pb[1]);
+}
+
+/* count remaining seats */
+function countRemainingSeats(tripId){
+  if(!BOOKINGS[tripId]) return 0;
+  return BOOKINGS[tripId].seats.filter(s=>!s).length;
+}
+
+/* 载入示例班次 */
+document.getElementById('btnLoadDemo').addEventListener('click', ()=>{
+  // create some demo trips across ranges/speeds
+  const demoQueries = [
+    {from:'北地县',to:'南会县',date:todayISO(1),transport:'train',speed:'H',range:'P'},
+    {from:'北地县',to:'灵山县',date:todayISO(2),transport:'plane',speed:'SH',range:'N'},
+    {from:'南会县',to:'南池县',date:todayISO(3),transport:'ship',speed:'F',range:'P'}
+  ];
+  let all=[];
+  demoQueries.forEach(q => all.push(...generateTripsForQuery({...q,count:3})));
+  renderTrips(all);
+});
+
+/* 选择班次进入下单流程 */
+let CURRENT_TRIP = null;
+let SELECTED_SEATS = []; // array of seatIndex
+let PASSENGERS = []; // array {name,id}
+function selectTripForBooking(tripId){
+  CURRENT_TRIP = TRIPS[tripId];
+  if(!CURRENT_TRIP){ alert('班次数据不存在'); return; }
+  // render selected trip info right panel
+  document.getElementById('selectedTripInfo').innerHTML = `<div><b>${escapeHtml(CURRENT_TRIP.tripId)}</b> ${escapeHtml(CURRENT_TRIP.from)} → ${escapeHtml(CURRENT_TRIP.to)}  ${CURRENT_TRIP.depart} → ${CURRENT_TRIP.arrive}</div>`;
+  // reset seat selection and passengers
+  SELECTED_SEATS = [];
+  PASSENGERS = [];
+  renderPassengerArea();
+  // show seat selection page on proceed
+  document.getElementById('proceedSeatBtn').onclick = ()=> {
+    if(PASSENGERS.length===0){ alert('请先添加至少一位乘客'); return; }
+    // go to seat selection tab
+    showTab('seatSelection');
+    renderSeatMapForCurrentTrip();
+    renderSeatPassengerList();
+  };
+  // scroll to selection area
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* Passenger area */
+const passengerArea = document.getElementById('passengerArea');
+document.getElementById('addPassengerBtn').addEventListener('click', ()=> {
+  const idx = PASSENGERS.length+1;
+  const name = prompt(`乘客 ${idx} 姓名：`) || `乘客${idx}`;
+  const idNo = prompt(`乘客 ${idx} 证件号：`) || `${uid(8)}`;
+  PASSENGERS.push({name, idNo, seatIndex:null});
+  renderPassengerArea();
+});
+document.getElementById('clearPassengersBtn').addEventListener('click', ()=> { if(confirm('清空乘客？')){ PASSENGERS=[]; renderPassengerArea(); } });
+
+function renderPassengerArea(){
+  passengerArea.innerHTML = '';
+  if(PASSENGERS.length===0) passengerArea.innerHTML = '<small class="muted">暂无乘客，请添加乘客（可多位）</small>';
+  PASSENGERS.forEach((p,idx)=>{
+    const div = document.createElement('div'); div.className='passenger';
+    div.innerHTML = `<div><b>乘客 ${idx+1}</b></div>
+      <div>姓名：${escapeHtml(p.name)}</div>
+      <div>证件：${escapeHtml(p.idNo)}</div>
+      <div>座位：<span id="pass-seat-${idx}">${p.seatIndex===null?'<small class="muted">未分配</small>':('已选 '+formatSeatLabel(CURRENT_TRIP.layout,p.seatIndex))}</span></div>
+      <div style="margin-top:6px;"><button class="btn secondary" data-idx="${idx}" onclick="editPassenger(event)">编辑</button> <button class="btn" data-idx="${idx}" onclick="removePassenger(event)">删除</button></div>`;
+    passengerArea.appendChild(div);
+  });
+  updatePriceDetail();
+}
+window.editPassenger = function(e){
+  const idx = e.currentTarget.dataset.idx;
+  const name = prompt('修改姓名：', PASSENGERS[idx].name);
+  const idNo = prompt('修改证件号：', PASSENGERS[idx].idNo);
+  if(name) PASSENGERS[idx].name = name;
+  if(idNo) PASSENGERS[idx].idNo = idNo;
+  renderPassengerArea();
+};
+window.removePassenger = function(e){
+  const idx = e.currentTarget.dataset.idx;
+  if(!confirm('删除乘客？')) return;
+  // free seat if assigned
+  const sIndex = PASSENGERS[idx].seatIndex;
+  if(sIndex!==null){
+    const booking = BOOKINGS[CURRENT_TRIP.tripId];
+    if(booking) booking.seats[sIndex] = false;
+    saveToLS(LS_KEYS.BOOKINGS, BOOKINGS);
+  }
+  PASSENGERS.splice(idx,1); renderPassengerArea();
+};
+/* 价格计算展示 */
+function updatePriceDetail(){
+  const div = document.getElementById('priceDetail');
+  if(!CURRENT_TRIP){ div.innerHTML = '<small class="muted">未选班次</small>'; return; }
+  const seatPrice = CURRENT_TRIP.price;
+  const passengerCount = PASSENGERS.length;
+  const total = seatPrice * passengerCount;
+  div.innerHTML = `单张票（默认）：￥${seatPrice} × ${passengerCount} = <b>￥${total}</b>`;
+}
+
+/* ===== Seat Map Rendering & Interaction ===== */
+const seatMapContainer = document.getElementById('seatMapContainer');
+function renderSeatMapForCurrentTrip(){
+  seatMapContainer.innerHTML = '';
+  if(!CURRENT_TRIP) return;
+  const tripId = CURRENT_TRIP.tripId;
+  const booking = BOOKINGS[tripId];
+  // iterate carriages
+  const layout = CURRENT_TRIP.layout;
+  let globalIndex = 0;
+  layout.carriages.forEach((car, carIdx) => {
+    const carDiv = document.createElement('div'); carDiv.className='carriage';
+    carDiv.innerHTML = `<div style="font-weight:600;margin-bottom:6px">${escapeHtml(car.name)}</div>`;
+    for(let r=0;r<car.rows;r++){
+      const rowDiv = document.createElement('div'); rowDiv.className='seat-row';
+      for(let c=0;c<car.cols;c++){
+        const seatIndex = globalIndex;
+        const span = document.createElement('div');
+        const isOccupied = booking && booking.seats[seatIndex];
+        span.className = 'seat ' + (isOccupied? 'occupied' : 'available');
+        span.textContent = `${r+1}-${c+1}`;
+        span.title = `${car.name} ${r+1}-${c+1} • ${car.seatTypes[seatIndex - (globalIndex - (car.rows*car.cols))] || ''}`;
+        span.dataset.index = seatIndex;
+        span.addEventListener('click', (ev)=> {
+          seatClicked(ev.currentTarget, seatIndex);
+        });
+        rowDiv.appendChild(span);
+        globalIndex++;
+      }
+      carDiv.appendChild(rowDiv);
+    }
+    seatMapContainer.appendChild(carDiv);
+  });
+  renderSeatPassengerList();
+}
+
+/* seat click */
+function seatClicked(dom, seatIndex){
+  const tripId = CURRENT_TRIP.tripId;
+  const booking = BOOKINGS[tripId];
+  if(!booking) return;
+  if(booking.seats[seatIndex]) return; // occupied
+
+  // find first passenger without seat
+  const pIdx = PASSENGERS.findIndex(p => p.seatIndex===null);
+  if(pIdx === -1){
+    // toggle unassign if it's already selected by someone
+    // find passenger who has this seat
+    const assignedIdx = PASSENGERS.findIndex(p => p.seatIndex===seatIndex);
+    if(assignedIdx !== -1){
+      // unassign
+      PASSENGERS[assignedIdx].seatIndex = null;
+      SELECTED_SEATS = SELECTED_SEATS.filter(s=>s!==seatIndex);
+      // update booking[]? we only mark booked on final confirm; here only mark selected visually
+      renderSeatMapForCurrentTrip();
+      renderSeatPassengerList(); renderPassengerArea();
+      return;
+    }
+    alert('所有乘客都已分配座位。如需更换，请先取消某乘客座位或添加新乘客。');
+    return;
+  }
+
+  // assign this seat to passenger pIdx
+  PASSENGERS[pIdx].seatIndex = seatIndex;
+  SELECTED_SEATS.push(seatIndex);
+  // visually mark selected: we'll re-render seats and mark selected seats specially
+  // to avoid toggling permanent occupied state, we mark selected seats by adding class
+  // update DOM: re-render
+  renderSeatMapForCurrentTrip();
+  renderSeatPassengerList();
+  renderPassengerArea();
+}
+
+/* render passenger list in seat selection panel */
+function renderSeatPassengerList(){
+  const el = document.getElementById('seatPassengerList');
+  el.innerHTML = '';
+  PASSENGERS.forEach((p,idx)=>{
+    const div = document.createElement('div'); div.className='passenger';
+    const seatLabel = p.seatIndex===null?'<small class="muted">未选</small>':formatSeatLabel(CURRENT_TRIP.layout,p.seatIndex);
+    div.innerHTML = `<div><b>乘客 ${idx+1}</b> ${escapeHtml(p.name)}</div>
+      <div>证件：${escapeHtml(p.idNo)}</div>
+      <div>座位：${seatLabel}</div>
+      <div style="margin-top:6px;"><button class="btn" onclick="removeSeatAssignment(${idx})">取消座位</button></div>`;
+    el.appendChild(div);
+  });
+  // visually highlight selected seats in map
+  const tripId = CURRENT_TRIP.tripId;
+  const booking = BOOKINGS[tripId];
+  const seatElems = seatMapContainer.querySelectorAll('.seat');
+  seatElems.forEach(se=>{
+    const idx = Number(se.dataset.index);
+    // selected
+    const isSelected = PASSENGERS.some(p=>p.seatIndex===idx);
+    if(isSelected) { se.classList.remove('available'); se.classList.remove('occupied'); se.classList.add('selected'); }
+    else {
+      // if occupied keep occupied class else available
+      if(booking && booking.seats[idx]) { se.classList.remove('available'); se.classList.remove('selected'); se.classList.add('occupied'); }
+      else { se.classList.remove('occupied'); se.classList.remove('selected'); se.classList.add('available'); }
+    }
+  });
+}
+
+window.removeSeatAssignment = function(passIdx){
+  const sIndex = PASSENGERS[passIdx].seatIndex;
+  if(sIndex!==null){
+    PASSENGERS[passIdx].seatIndex = null;
+    SELECTED_SEATS = SELECTED_SEATS.filter(s=>s!==sIndex);
+    renderSeatMapForCurrentTrip();
+    renderSeatPassengerList();
+    renderPassengerArea();
+  }
+};
+
+/* format seat label based on layout */
+function formatSeatLabel(layout, seatIndex){
+  let idx = seatIndex;
+  for(let ci=0;ci<layout.carriages.length;ci++){
+    const car = layout.carriages[ci];
+    const carSize = car.rows*car.cols;
+    if(idx < carSize){
+      const row = Math.floor(idx / car.cols) + 1;
+      const col = (idx % car.cols) + 1;
+      return `${car.name} ${row}-${col}`;
+    }
+    idx -= carSize;
+  }
+  return `座位${seatIndex+1}`;
+}
+
+/* Confirm booking -> create order, persist bookings */
+document.getElementById('confirmBookingBtn').addEventListener('click', ()=>{
+  if(!CURRENT_TRIP) return alert('未选择班次');
+  if(PASSENGERS.length===0) return alert('未添加乘客');
+  // validate: all passengers have seats
+  if(PASSENGERS.some(p=>p.seatIndex===null)) return alert('请为所有乘客分配座位');
+  // mark seats as occupied in BOOKINGS
+  const tripId = CURRENT_TRIP.tripId;
+  BOOKINGS[tripId] = BOOKINGS[tripId] || {seats: new Array(CURRENT_TRIP.layout.totalSeats).fill(false)};
+  PASSENGERS.forEach(p=>{
+    BOOKINGS[tripId].seats[p.seatIndex] = true;
+  });
+  saveToLS(LS_KEYS.BOOKINGS, BOOKINGS);
+  // create order
+  const orderId = 'ORD' + (new Date()).getTime() + uid(4);
+  const order = {
+    orderId,
+    tripId,
+    trip: CURRENT_TRIP,
+    passengers: JSON.parse(JSON.stringify(PASSENGERS)),
+    totalPrice: CURRENT_TRIP.price * PASSENGERS.length,
+    created: nowISO(),
+    paid: false // simulated
+  };
+  ORDERS.push(order);
+  saveToLS(LS_KEYS.ORDERS, ORDERS);
+  refreshOrdersCount();
+  alert(`下单成功！订单号 ${orderId}\n已保存到本地订单。`);
+  // reset selection and go to orders tab
+  PASSENGERS = []; SELECTED_SEATS = [];
+  saveToLS(LS_KEYS.BOOKINGS, BOOKINGS);
+  showTab('orders'); renderOrders();
+});
+/* back to search */
+document.getElementById('backToSearchBtn').addEventListener('click', ()=> showTab('booking') );
+
+/* render orders */
+function renderOrders(filterParams){
+  ORDERS = loadFromLS(LS_KEYS.ORDERS, []);
+  const list = document.getElementById('ordersList'); list.innerHTML='';
+  const filterType = document.getElementById('orderFilterType').value;
+  const filterDate = document.getElementById('orderFilterDate').value;
+  const filtered = ORDERS.filter(o=>{
+    if(filterType && o.trip.transport !== filterType) return false;
+    if(filterDate && o.trip.date !== filterDate) return false;
+    return true;
+  });
+  if(filtered.length===0){ list.innerHTML='<div><small class="muted">暂无订单</small></div>'; return; }
+  filtered.forEach((o,idx)=>{
+    const div = document.createElement('div');
+    div.innerHTML = `<div style="flex:1">
+        <div><b>订单 ${escapeHtml(o.orderId)}</b></div>
+        <div><small class="muted">${escapeHtml(o.trip.tripId)} ${escapeHtml(o.trip.from)}→${escapeHtml(o.trip.to)} ${escapeHtml(o.trip.date)} ${escapeHtml(o.trip.depart)} </small></div>
+        <div>乘客：${o.passengers.map(p=>escapeHtml(p.name)).join('，')}</div>
+      </div>
+      <div style="text-align:right">
+        <div>￥${o.totalPrice}</div>
+        <div style="margin-top:6px">
+          <button class="btn" data-idx="${idx}" onclick="printOrder(event)">打印</button>
+          <button class="btn secondary" data-idx="${idx}" onclick="refundOrder(event)">退票</button>
+        </div>
+      </div>`;
+    list.appendChild(div);
+  });
+}
+
+/* print order: opens print view with order details */
+window.printOrder = function(e){
+  const idx = e.currentTarget.dataset.idx;
+  const o = ORDERS[idx];
+  if(!o) return;
+  const w = window.open('','_blank','width=700,height=700');
+  const html = `<html><head><title>票据 ${escapeHtml(o.orderId)}</title></head><body>
+    <h2>大凉国 电子车票 (模拟)</h2>
+    <p><b>订单号：</b>${escapeHtml(o.orderId)}</p>
+    <p><b>班次：</b>${escapeHtml(o.trip.tripId)} ${escapeHtml(o.trip.from)} → ${escapeHtml(o.trip.to)} ${escapeHtml(o.trip.date)} ${escapeHtml(o.trip.depart)} </p>
+    <p><b>票价：</b>￥${o.totalPrice}</p>
+    <h3>乘客信息</h3>
+    <ul>${o.passengers.map(p=>`<li>${escapeHtml(p.name)} - ${escapeHtml(p.idNo)} - ${formatSeatLabel(o.trip.layout,p.seatIndex||0)}</li>`).join('')}</ul>
+    <hr><p>（此票为本系统前端模拟票据，仅供演示）</p>
+  </body></html>`;
+  w.document.write(html); w.document.close(); w.print();
+};
+
+/* refund order */
+window.refundOrder = function(e){
+  const idx = e.currentTarget.dataset.idx;
+  const o = ORDERS[idx];
+  if(!o) return;
+  if(!confirm('确认退票？（将释放座位并删除订单）')) return;
+  // release seats
+  const tripId = o.tripId || o.trip.tripId;
+  if(BOOKINGS[tripId]){
+    o.passengers.forEach(p => {
+      if(typeof p.seatIndex==='number') BOOKINGS[tripId].seats[p.seatIndex] = false;
+    });
+    saveToLS(LS_KEYS.BOOKINGS, BOOKINGS);
+  }
+  // remove order
+  ORDERS.splice(idx,1); saveToLS(LS_KEYS.ORDERS, ORDERS); renderOrders(); refreshOrdersCount();
+  alert('退票成功（已释放座位）');
+};
+
+/* Order filter / export */
+document.getElementById('filterOrdersBtn').addEventListener('click', ()=> renderOrders());
+document.getElementById('exportOrdersBtn').addEventListener('click', ()=>{
+  const data = loadFromLS(LS_KEYS.ORDERS, []);
+  const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'orders.json'; a.click();
+  URL.revokeObjectURL(url);
+});
+
+/* manage buttons */
+document.getElementById('regenTripsBtn').addEventListener('click', ()=> {
+  if(!confirm('重新生成演示班次，将覆盖当前 TRIPS 数据（但不会删除订单）。继续？')) return;
+  TRIPS = {};
+  BOOKINGS = {};
+  saveToLS(LS_KEYS.TRIPS, TRIPS);
+  saveToLS(LS_KEYS.BOOKINGS, BOOKINGS);
+  alert('已重置演示班次数据（TRIPS/BOOKINGS）');
+});
+document.getElementById('restoreStateBtn').addEventListener('click', ()=> {
+  if(!confirm('恢复示例存档（覆盖当前 TRIPS / ORDERS / BOOKINGS）？')) return;
+  // generate some demo entries
+  TRIPS = {};
+  BOOKINGS = {};
+  ORDERS = [];
+  const demo = generateTripsForQuery({from:'北地县',to:'南会县',date:todayISO(1),transport:'train',speed:'H',range:'P',count:4});
+  const demo2 = generateTripsForQuery({from:'临沙县',to:'白昭乡',date:todayISO(2),transport:'plane',speed:'SH',range:'N',count:2});
+  saveToLS(LS_KEYS.TRIPS, TRIPS);
+  saveToLS(LS_KEYS.BOOKINGS, BOOKINGS);
+  saveToLS(LS_KEYS.ORDERS, ORDERS);
+  alert('示例存档已恢复。');
+});
+document.getElementById('clearLocalBtn').addEventListener('click', ()=> {
+  if(!confirm('清除 localStorage（TRIPS/BOOKINGS/ORDERS）？此操作不可恢复。')) return;
+  localStorage.removeItem(LS_KEYS.TRIPS); localStorage.removeItem(LS_KEYS.BOOKINGS); localStorage.removeItem(LS_KEYS.ORDERS);
+  TRIPS={}; BOOKINGS={}; ORDERS=[]; refreshOrdersCount(); alert('已清除。刷新页面以生效。');
+});
+document.getElementById('clearSaved').addEventListener('click', ()=> {
+  if(!confirm('清除所有本地保存（TRIPS / BOOKINGS / ORDERS）？')) return;
+  localStorage.removeItem(LS_KEYS.TRIPS); localStorage.removeItem(LS_KEYS.BOOKINGS); localStorage.removeItem(LS_KEYS.ORDERS);
+  TRIPS={}; BOOKINGS={}; ORDERS=[]; refreshOrdersCount(); alert('已清除本地数据。');
+});
+
+/* helper: show specific tab/content */
+function showTab(id){
+  document.querySelectorAll('.tab-content').forEach(el=>el.style.display='none');
+  document.getElementById(id).style.display = 'block';
+  // nav style
+  document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));
+  const btn = Array.from(document.querySelectorAll('.nav button')).find(b=>b.dataset.tab===id);
+  if(btn) btn.classList.add('active');
+}
+
+/* wire nav top */
+document.querySelectorAll('.nav button').forEach(b=>{
+  b.addEventListener('click',(e)=> {
+    const t = b.dataset.tab;
+    // mapping between data-tab and section ids
+    if(t==='booking') { document.querySelectorAll('.tab-content').forEach(tc=>tc.style.display='none'); document.getElementById('booking').style.display='block'; }
+    if(t==='orders') { document.querySelectorAll('.tab-content').forEach(tc=>tc.style.display='none'); document.getElementById('orders').style.display='block'; renderOrders(); }
+    if(t==='manage') { document.querySelectorAll('.tab-content').forEach(tc=>tc.style.display='none'); document.getElementById('manage').style.display='block'; }
+    // visually set
+    document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active')); b.classList.add('active');
+  });
+});
+
+/* helper: todays iso + offset days */
+function todayISO(offsetDays=0){
+  const d=new Date(); d.setDate(d.getDate()+offsetDays);
+  return d.toISOString().slice(0,10);
+}
+
+/* seat rendering quick helper for selected trip */
+function renderSeatMapForCurrentTrip(){
+  // reuse function declared earlier in code area (already defined). But ensure it's visible:
+  // We'll call the previously defined renderSeatMapForCurrentTrip above by name; if not, re-invoke here
+  // Already defined earlier, so call it:
+  if(typeof window.renderSeatMapForCurrentTrip === 'function'){
+    window.renderSeatMapForCurrentTrip();
+  } else {
+    // fallback simple render: (should not happen)
+    seatMapContainer.innerHTML = '<small class="muted">座位图加载失败</small>';
+  }
+}
+
+/* when search results placed, clicking a trip shows selection -- function already defined earlier
+   but ensure that when trips are rendered we can call selectTripForBooking
+*/
+function selectTripForBooking(tripId){
+  if(!TRIPS[tripId]){ alert('班次丢失，刷新试试'); return; }
+  CURRENT_TRIP = TRIPS[tripId];
+  SELECTED_SEATS = [];
+  PASSENGERS = [];
+  renderPassengerArea();
+  document.getElementById('selectedTripInfo').innerHTML = `<div><b>${escapeHtml(CURRENT_TRIP.tripId)}</b> ${escapeHtml(CURRENT_TRIP.from)} → ${escapeHtml(CURRENT_TRIP.to)} ${CURRENT_TRIP.date} ${CURRENT_TRIP.depart}</div>`;
+  // switch to booking right side view (stay on booking but allow proceed)
+  // auto scroll
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* initial UI state */
+(function init(){
+  // populate date default
+  document.getElementById('travelDate').value = todayISO(0);
+  // populate provinces (from/to)
+  fillProvince(fromProvinceEl); fillProvince(toProvinceEl);
+  // default default speed/range
+  speedSelect.value = 'H';
+  rangeSelect.value = 'P';
+  // load existing TRIPS/BOOKINGS/ORDERS from LS
+  TRIPS = loadFromLS(LS_KEYS.TRIPS, TRIPS);
+  BOOKINGS = loadFromLS(LS_KEYS.BOOKINGS, BOOKINGS);
+  ORDERS = loadFromLS(LS_KEYS.ORDERS, ORDERS);
+  refreshOrdersCount();
+  // render orders count
+  document.getElementById('ordersCount').textContent = ORDERS.length;
+  // wire sort change to re-render last trips if any
+  sortByEl.addEventListener('change', ()=> { /* no-op; will sort on next render */ });
+  sortDirEl.addEventListener('change', ()=> { /* no-op */ });
+})();
+
+</script>
+</body>
+</html>
+
+
