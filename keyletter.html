@@ -1,0 +1,139 @@
+<!DOCTYPE html><html lang="dl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>大凉国输入法升级版</title>
+<style>
+  body { font-family: sans-serif; margin: 0; padding: 0; background: #f0f0f0; }
+  .container { max-width: 1000px; margin: auto; padding: 20px; }
+  h1 { text-align: center; margin-bottom: 20px; }/* 绘制区 */ #drawPad { border: 2px solid #333; background: #fff; touch-action: none; display: block; margin: auto; } .draw-buttons { text-align: center; margin-top: 10px; } .draw-buttons button { padding: 8px 16px; margin: 5px; border-radius: 6px; border: none; background: #4CAF50; color: #fff; cursor: pointer; } .draw-buttons button:hover { background: #45a049; }
+
+/* 候选区 */ #candidateBox { margin-top: 20px; min-height: 60px; padding: 10px; background: #e0e0e0; border-radius: 8px; display: flex; flex-wrap: wrap; gap: 5px; overflow-x: auto; } .candidateChar { width: 50px; height: 50px; border: 1px solid #999; display: flex; justify-content: center; align-items: center; cursor: pointer; border-radius: 4px; background: #fff; } .candidateChar:hover { background: #ddd; }
+
+/* 输出区 */ #textOutput { margin-top: 20px; padding: 10px; min-height: 100px; border: 1px solid #bbb; background: #fff; border-radius: 6px; display: flex; flex-wrap: wrap; gap: 5px; }
+
+/* 键盘 */ .keyboard { display: grid; grid-template-columns: repeat(10, 1fr); gap: 8px; margin-top: 20px; } .key { padding: 12px; background: #ddd; border-radius: 6px; text-align: center; cursor: pointer; user-select: none; font-weight: bold; } .key:hover { background: #ccc; } </style>
+
+</head>
+<body>
+<div class="container">
+  <h1>大凉国输入法升级版</h1>  <!-- 绘制区 --><canvas id="drawPad" width="300" height="300"></canvas>
+
+  <div class="draw-buttons">
+    <button id="clearDraw">清空笔画</button>
+    <button id="finishChar">完成字符</button>
+  </div>  <!-- 候选区 -->  <div id="candidateBox"></div>  <!-- 输出区 -->  <div id="textOutput" contenteditable="true"></div>  <!-- 拉丁键盘 -->  <div class="keyboard" id="latinKeyboard"></div>
+</div><script>
+// =========================
+// 绘制笔画逻辑
+// =========================
+let pad = document.getElementById("drawPad");
+let ctx = pad.getContext("2d");
+let drawing = false;
+let strokes = [];
+let currentStroke = [];
+
+function startDraw(e){ drawing=true; currentStroke=[]; addPoint(e); }
+function stopDraw(){ if(!drawing) return; drawing=false; if(currentStroke.length>0) strokes.push(currentStroke); redrawCanvas(); }
+function drawMove(e){ if(!drawing) return; addPoint(e,true); }
+function addPoint(e,draw=false){
+  const rect = pad.getBoundingClientRect();
+  const x=(e.touches?e.touches[0].clientX:e.clientX)-rect.left;
+  const y=(e.touches?e.touches[0].clientY:e.clientY)-rect.top;
+  const p={x,y};
+  currentStroke.push(p);
+  if(draw) redrawCanvas();
+}
+
+function redrawCanvas(){
+  ctx.clearRect(0,0,pad.width,pad.height);
+  ctx.lineWidth=4; ctx.lineCap="round";
+  strokes.concat([currentStroke]).forEach(st=>{
+    ctx.beginPath();
+    st.forEach((p,i)=>{ if(i===0) ctx.moveTo(p.x,p.y); else ctx.lineTo(p.x,p.y); });
+    ctx.stroke();
+  });
+}
+
+pad.addEventListener("mousedown",startDraw);
+pad.addEventListener("mousemove",drawMove);
+pad.addEventListener("mouseup",stopDraw);
+pad.addEventListener("mouseleave",stopDraw);
+pad.addEventListener("touchstart",startDraw);
+pad.addEventListener("touchmove",drawMove);
+pad.addEventListener("touchend",stopDraw);
+
+// =========================
+// 字库管理 & SVG生成
+// =========================
+let charDict = {};
+function strokesToSVG(strokes){
+  return strokes.map(st=>`M${st.map(p=>`${p.x} ${p.y}`).join(' L')}`).join(' ');
+}
+
+document.getElementById("finishChar").onclick = ()=>{
+  if(strokes.length===0) return;
+  const charID="DL-"+Math.random().toString(36).slice(2,6);
+  const svgPath = strokesToSVG(strokes);
+  const charObj = { charID, strokes: JSON.parse(JSON.stringify(strokes)), svgPath };
+
+  let latinCode = prompt("输入对应拉丁码（仅字母）:");
+  if(!latinCode) return;
+  latinCode = latinCode.toLowerCase();
+  if(!charDict[latinCode]) charDict[latinCode]=[];
+  charDict[latinCode].push(charObj);
+
+  strokes=[]; currentStroke=[]; redrawCanvas();
+  renderCandidates(latinCode);
+};
+
+document.getElementById("clearDraw").onclick = ()=>{ strokes=[]; currentStroke=[]; redrawCanvas(); };
+
+// =========================
+// 拉丁键盘
+// =========================
+const latinKeys=["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"];
+const keyboard=document.getElementById("latinKeyboard");
+latinKeys.forEach(k=>{
+  const div=document.createElement("div"); div.className="key"; div.textContent=k;
+  div.onclick=()=>handleLatin(k);
+  keyboard.appendChild(div);
+});
+
+let buffer="";
+function handleLatin(k){ buffer+=k; renderCandidates(buffer); }
+
+// =========================
+// 候选区渲染
+// =========================
+function renderCandidates(code){
+  const box=document.getElementById("candidateBox");
+  box.innerHTML='';
+  if(charDict[code]){
+    charDict[code].forEach(charObj=>{
+      const div=document.createElement("div"); div.className="candidateChar";
+      const svgNS = "http://www.w3.org/2000/svg";
+      const svgEl = document.createElementNS(svgNS,"svg");
+      svgEl.setAttribute("width",50); svgEl.setAttribute("height",50); svgEl.setAttribute("viewBox","0 0 300 300");
+      const pathEl = document.createElementNS(svgNS,"path");
+      pathEl.setAttribute("d",charObj.svgPath); pathEl.setAttribute("stroke","black");
+      pathEl.setAttribute("fill","none"); pathEl.setAttribute("stroke-width",4);
+      svgEl.appendChild(pathEl);
+      div.appendChild(svgEl);
+      div.title = charObj.charID;
+
+      div.onclick=()=>{
+        const output=document.getElementById("textOutput");
+        output.appendChild(svgEl.cloneNode(true));
+        buffer=""; box.innerHTML='';
+      };
+      box.appendChild(div);
+    });
+  } else {
+    if(code.length>0){
+      const span=document.createElement("span"); span.textContent=code; box.appendChild(span);
+    }
+  }
+}
+</script></body>
+</html>
