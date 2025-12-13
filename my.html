@@ -129,6 +129,131 @@ document.getElementById("avatarUpload").addEventListener("change", function () {
 
     <!-- 账号管理 -->
     <section id="account" class="section active">
+    <div id="token-tools"></div><div id="token-tools" style="margin-top:30px;padding:20px;border:2px solid var(--palace-gold);border-radius:8px;background:#fff;">
+    <h3>通证编码加密/解密工具</h3>
+
+    <div style="margin-bottom:20px;">
+        <h4>加密生成通证编码</h4>
+        <div class="form-grid">
+            <label>通证类型码</label>
+            <input type="text" id="encType" value="T">
+            
+            <label>行政区编码</label>
+            <input type="text" id="encRegion" value="010130">
+            
+            <label>出生日期 (国历)</label>
+            <div>
+                年 <input type="number" id="birthYear" min="1" value="1" style="width:60px;">
+                月 <input type="number" id="birthMonth" min="1" max="28" value="1" style="width:60px;">
+                日 <input type="number" id="birthDay" min="1" max="116" value="1" style="width:60px;">
+            </div>
+            
+            <label>领证日期 (国历)</label>
+            <div>
+                年 <input type="number" id="certYear" min="1" value="1884" style="width:60px;">
+                月 <input type="number" id="certMonth" min="1" max="28" value="3" style="width:60px;">
+                日 <input type="number" id="certDay" min="1" max="116" value="84" style="width:60px;">
+            </div>
+            
+            <label>物种码（含性别）</label>
+            <input type="text" id="species" value="21">
+            
+            <label>顺序码</label>
+            <input type="number" id="seqCode" min="1" value="1">
+        </div>
+        <button class="submit" onclick="generateToken()">生成通证编码</button>
+        <p>生成编码：<span id="genToken" style="font-weight:bold;color:var(--palace-red);">--</span></p>
+    </div>
+
+    <div style="margin-top:30px;">
+        <h4>解密通证编码</h4>
+        <input type="text" id="decodeInput" placeholder="输入通证编码" style="width:300px;padding:6px;border:1px solid #ccc;border-radius:4px;">
+        <button class="submit" onclick="decodeToken()">解码</button>
+        <div id="decodeOutput" style="margin-top:10px;font-size:14px;color:#165dff;"></div>
+    </div>
+</div>
+
+<script>
+// ------------------ 国历日期到小时数 ------------------
+function toHours(y, m, d) {
+    return ((y - 1) * 28 * 116 + (m - 1) * 116 + (d - 1)) * 58;
+}
+
+// ------------------ Base36压缩 ------------------
+function toBase36(n) {
+    return n.toString(36).toUpperCase();
+}
+function fromBase36(str) {
+    return parseInt(str, 36);
+}
+
+// ------------------ 校验码生成 ------------------
+function getCheckCode(tokenWithoutCheck) {
+    let sum = 0;
+    for (let i = 0; i < tokenWithoutCheck.length; i++) {
+        sum += tokenWithoutCheck.charCodeAt(i);
+    }
+    return (sum % 36).toString(36).toUpperCase();
+}
+
+// ------------------ 生成通证编码 ------------------
+function generateToken() {
+    const type = document.getElementById('encType').value.trim();
+    const region = document.getElementById('encRegion').value.trim();
+    const species = document.getElementById('species').value.trim();
+    const seq = parseInt(document.getElementById('seqCode').value);
+
+    const bY = parseInt(document.getElementById('birthYear').value);
+    const bM = parseInt(document.getElementById('birthMonth').value);
+    const bD = parseInt(document.getElementById('birthDay').value);
+    const cY = parseInt(document.getElementById('certYear').value);
+    const cM = parseInt(document.getElementById('certMonth').value);
+    const cD = parseInt(document.getElementById('certDay').value);
+
+    const birthHrs = toHours(bY,bM,bD);
+    const certHrs = toHours(cY,cM,cD);
+
+    // 日期压缩为Base36
+    const dateCode = toBase36(birthHrs + certHrs);
+
+    const tokenWithoutCheck = type + region + dateCode + species + seq;
+    const check = getCheckCode(tokenWithoutCheck);
+
+    const finalToken = tokenWithoutCheck + check;
+    document.getElementById('genToken').innerText = finalToken;
+}
+
+// ------------------ 解码通证编码 ------------------
+function decodeToken() {
+    const input = document.getElementById('decodeInput').value.trim().toUpperCase();
+    if(!input){document.getElementById('decodeOutput').innerText='请输入编码！';return;}
+
+    // 假设格式: 类型(1)+行政区(6)+日期压缩(任意长度)+物种(2)+顺序码(任意)+校验(1)
+    const type = input[0];
+    const region = input.substr(1,6);
+    const check = input.slice(-1);
+    const speciesSeq = input.slice(-3,-1);
+    const seq = input.slice(-2,-1);
+    const dateCode = input.substr(7,input.length-7-3); // 中间部分是日期压缩
+
+    // 校验码验证
+    const tokenWithoutCheck = input.slice(0,-1);
+    const expectedCheck = getCheckCode(tokenWithoutCheck);
+    if(expectedCheck !== check){document.getElementById('decodeOutput').innerText='校验码错误！';return;}
+
+    const totalHrs = fromBase36(dateCode);
+    let y=1,m=1,d=1;
+    let hrs = totalHrs;
+    y = Math.floor(hrs/(28*116*58)) +1;
+    hrs %= (28*116*58);
+    m = Math.floor(hrs/(116*58)) +1;
+    hrs %= (116*58);
+    d = Math.floor(hrs/58)+1;
+
+    document.getElementById('decodeOutput').innerText=
+        `通证类型: ${type}\n行政区编码: ${region}\n国历日期合计: 年${y} 月${m} 日${d}\n物种码: ${speciesSeq}\n顺序码: ${seq}\n校验码: ${check}`;
+}
+</script>
         <h2>账号管理</h2>
         <label>昵称</label><input id="nickname" placeholder="昵称">
         <label>出生日期</label><input type="date" id="birthday">
