@@ -1,0 +1,115 @@
+<!DOCTYPE html><html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <title>宣凉院 · 大凉国文化文学艺术哲学</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root{--ink:#2b2b2b;--paper:#f6f3ec;--gold:#b89b5e;--red:#7a1f1f;--shadow:rgba(0,0,0,.08)}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:"Noto Serif TC","Songti TC","Source Han Serif TC",serif;color:var(--ink);background:linear-gradient(180deg,#fbfaf6,#f1ede3)}
+    header{position:sticky;top:0;z-index:10;background:rgba(246,243,236,.95);backdrop-filter:blur(6px);border-bottom:1px solid #e0d9c8}
+    .nav{display:flex;align-items:center;padding:10px 18px;gap:24px}
+    .brand{display:flex;align-items:center;gap:10px;white-space:nowrap}
+    .brand img.icon{width:32px;height:32px}
+    .brand img.title{height:28px}
+    .nav-links{display:flex;flex-wrap:wrap;gap:8px}
+    .nav-links button{background:transparent;border:1px solid #d8cfb8;border-radius:999px;padding:4px 14px;font-size:14px;cursor:pointer}
+    .nav-links button:hover{background:var(--red);color:#fff;border-color:var(--red)}
+    .hero{height:360px;background:url('1765601757724.png') center/cover no-repeat;display:flex;align-items:flex-end;position:relative}
+    .hero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.15),rgba(0,0,0,.55))}
+    .hero-text{position:relative;color:#fff;padding:24px}
+    main{max-width:1100px;margin:auto;padding:40px 18px 80px}
+    section{margin-bottom:56px}
+    h2{border-left:4px solid var(--gold);padding-left:10px;letter-spacing:2px}
+    .card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:18px}
+    .card{background:var(--paper);border:1px solid #e1dac6;border-radius:14px;padding:14px;box-shadow:0 6px 14px var(--shadow)}
+    .card h3{margin:0 0 6px;font-size:16px}
+    .card p{margin:0;font-size:14px;line-height:1.6}
+    .meta{font-size:11px;color:#777;margin-top:6px}
+    .add{margin-top:10px;background:#7a1f1f;color:#fff;border:none;border-radius:999px;padding:6px 16px;font-size:13px;cursor:pointer}
+    .add:hover{opacity:.85}
+    /* 卷轴阅读 */
+    #scrollView{display:none;position:fixed;inset:0;background:#f3efe6;z-index:50;overflow:auto}
+    #scrollView .inner{max-width:700px;margin:60px auto;padding:40px;border:1px solid #d8cfb8;background:#fffaf0}
+    #scrollView h1{text-align:center;letter-spacing:4px}
+    #scrollView button{position:fixed;top:16px;right:16px}
+  </style>
+</head>
+<body><header>
+  <div class="nav">
+    <div class="brand">
+      <img src="1765601488375.png" alt="宣凉院图标" class="icon" />
+      <img src="1d9372a93ab087c7.png" alt="宣凉院" class="title" />
+    </div>
+    <div class="nav-links">
+      <button onclick="scrollToSection('poetry')">詩詞</button>
+      <button onclick="scrollToSection('articles')">文章</button>
+      <button onclick="scrollToSection('fu')">賦</button>
+      <button onclick="scrollToSection('novels')">小說</button>
+      <button onclick="scrollToSection('literature')">文學總論</button>
+      <button onclick="scrollToSection('culture')">文化</button>
+      <button onclick="scrollToSection('history')">歷史</button>
+      <button onclick="scrollToSection('philosophy')">哲學</button>
+      <button onclick="scrollToSection('art')">藝術</button>
+      <button onclick="scrollToSection('archives')">典藏</button>
+    </div>
+  </div>
+</header><div class="hero">
+  <div class="hero-text">
+    <h1>宣凉院</h1>
+    <p>大凉国 · 文化 · 文学 · 艺术 · 哲学之所</p>
+  </div>
+</div><main>
+<p style="font-size:14px;color:#666">※ 宣凉院院藏：內容僅保存於本機瀏覽器（localStorage），可自由編修、分類、卷軸閱讀。</p><section id="poetry" data-editable><h2>詩詞</h2><div class="card-grid"></div><button class="add" onclick="addCard('poetry')">＋ 添新作</button></section>
+<section id="articles" data-editable><h2>文章</h2><div class="card-grid"></div><button class="add" onclick="addCard('articles')">＋ 添新作</button></section>
+<section id="fu" data-editable><h2>賦</h2><div class="card-grid"></div><button class="add" onclick="addCard('fu')">＋ 添新作</button></section>
+<section id="novels" data-editable><h2>小說</h2><div class="card-grid"></div><button class="add" onclick="addCard('novels')">＋ 添新作</button></section>
+<section id="culture" data-editable><h2>文化</h2><div class="card-grid"></div><button class="add" onclick="addCard('culture')">＋ 添新作</button></section>
+<section id="history" data-editable><h2>歷史</h2><div class="card-grid"></div><button class="add" onclick="addCard('history')">＋ 添新作</button></section>
+<section id="philosophy" data-editable><h2>哲學</h2><div class="card-grid"></div><button class="add" onclick="addCard('philosophy')">＋ 添新作</button></section>
+<section id="art" data-editable><h2>藝術</h2><div class="card-grid"></div><button class="add" onclick="addCard('art')">＋ 添新作</button></section>
+<section id="archives" data-editable><h2>典藏</h2><div class="card-grid"></div><button class="add" onclick="addCard('archives')">＋ 添新作</button></section>
+</main><div id="scrollView"><button onclick="closeScroll()">關閉</button><div class="inner"><h1 id="svTitle"></h1><div id="svMeta" class="meta"></div><div id="svText" style="margin-top:20px;line-height:1.8"></div></div></div><footer>
+  宣凉院 · 元相禪寺內設機構 · 大凉國國會文化文學藝術哲學系統
+</footer><script>
+const STORE_KEY='xuanliang_content';
+let store=JSON.parse(localStorage.getItem(STORE_KEY)||'{}');
+
+function save(){localStorage.setItem(STORE_KEY,JSON.stringify(store))}
+
+function addCard(sec){
+  const title=prompt('題名'); if(!title)return;
+  const text=prompt('正文'); if(!text)return;
+  const style=prompt('體例（文言 / 白話 / 雅言）','白話');
+  if(!store[sec])store[sec]=[];
+  store[sec].push({title,text,style,time:new Date().toLocaleString()});
+  save(); render();
+}
+
+function render(){
+  document.querySelectorAll('section[data-editable]').forEach(sec=>{
+    const id=sec.id,grid=sec.querySelector('.card-grid');
+    grid.innerHTML='';
+    (store[id]||[]).forEach((it,i)=>{
+      const d=document.createElement('div');d.className='card';
+      d.innerHTML=`<h3>${it.title}</h3><p>${it.text.slice(0,60)}…</p><div class='meta'>${it.style} · ${it.time}</div>
+      <div class='meta'><a href='#' onclick="openScroll('${id}',${i})">卷軸</a> ｜ <a href='#' onclick="del('${id}',${i})">刪除</a></div>`;
+      grid.appendChild(d);
+    });
+  })
+}
+
+function del(sec,i){if(confirm('確定刪除？')){store[sec].splice(i,1);save();render();}}
+
+function openScroll(sec,i){
+  const it=store[sec][i];
+  svTitle.innerText=it.title;
+  svText.innerText=it.text;
+  svMeta.innerText=`${it.style} · ${it.time} · 宣凉院院藏`;
+  scrollView.style.display='block';
+}
+function closeScroll(){scrollView.style.display='none'}
+function scrollToSection(id){document.getElementById(id)?.scrollIntoView({behavior:'smooth'})}
+render();
+</script></body>
+</html>
