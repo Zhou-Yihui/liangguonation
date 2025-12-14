@@ -90,6 +90,7 @@ button.submit{padding:8px 20px;background:var(--palace-red);color:#fff;border:no
         <button class="submit" onclick="showSec('privacy')">隐私</button>
         <button class="submit" onclick="showSec('gov')">政务信息</button>
         <button class="submit" onclick="showSec('parliament')">议案投票</button>
+        <button class="submit" onclick="showSec('card')">一卡通</button>
         <button class="submit" onclick="showSec('other')">其他</button>
         <button class="submit" onclick="showSec('citizen')">公民互动</button>
         <button class="submit" onclick="location.href='gen.html'">电号生成</button>
@@ -296,6 +297,228 @@ function decodeToken() {
         <button class="submit" onclick="downloadCertificate()">下载证件PDF</button>
     </section>
     
+    <!-- 一卡通 -->
+<section id="card" class="section">
+    <h2>大凉国众生一卡通</h2>
+    <!-- 办卡表单 -->
+    <div id="card-apply-form" style="display:block;margin-bottom:30px;padding:20px;border:1px solid #e5e6eb;border-radius:8px;">
+        <h3 style="color:var(--palace-red);margin-top:0;">办卡申请</h3>
+        <div class="form-grid">
+            <div>
+                <label>真实姓名（与通证一致）</label>
+                <input type="text" id="card-realname" required placeholder="请输入真实姓名">
+            </div>
+            <div>
+                <label>通证编号（自动填充）</label>
+                <input type="text" id="card-token" readonly placeholder="通证编号">
+            </div>
+            <div>
+                <label>联系电话</label>
+                <input type="tel" id="card-phone" required placeholder="请输入联系电话">
+            </div>
+            <div>
+                <label>户籍所在地</label>
+                <input type="text" id="card-address" required placeholder="如：京师凡多城兴庆区">
+            </div>
+            <div class="full">
+                <label>办卡类型</label>
+                <select id="card-type" required>
+                    <option value="standard">标准卡（含交通+社保+医保功能）</option>
+                    <option value="senior">老年卡（额外享优惠政策）</option>
+                    <option value="student">学生卡（额外享教育相关功能）</option>
+                </select>
+            </div>
+        </div>
+        <button class="submit" style="margin-top:15px;" onclick="submitCardApplication()">提交办卡申请</button>
+    </div>
+
+    <!-- 已办卡展示 -->
+    <div id="card-display" style="display:none;position:relative;width:600px;height:350px;margin:20px auto;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.15);">
+        <!-- 卡片背景（虚化处理） -->
+        <div style="position:absolute;top:0;left:0;width:100%;height:100%;">
+            <img src="1765726205835.png" style="width:100%;height:100%;object-fit:cover;filter:blur(2px);opacity:0.8;">
+        </div>
+        <!-- 卡片标题图 -->
+        <div style="position:absolute;top:15px;left:20px;width:80px;height:30px;">
+            <img src="IMG_20251214_232748.jpg" style="width:100%;height:100%;object-fit:contain;">
+        </div>
+        <!-- 卡片信息层 -->
+        <div style="position:absolute;top:0;left:0;width:100%;height:100%;padding:20px;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,0.5);">
+            <div style="margin-top:60px;">
+                <p style="font-size:18px;margin:5px 0;"><strong>持卡人：</strong><span id="card-display-name">--</span></p>
+                <p style="font-size:16px;margin:5px 0;"><strong>通证编号：</strong><span id="card-display-token">--</span></p>
+                <p style="font-size:16px;margin:5px 0;"><strong>卡片类型：</strong><span id="card-display-type">标准卡</span></p>
+                <p style="font-size:14px;margin:5px 0;"><strong>办卡日期：</strong><span id="card-display-date">--</span></p>
+                <p style="font-size:14px;margin:5px 0;"><strong>状态：</strong><span id="card-display-status" style="color:#4cd964;">正常使用</span></p>
+            </div>
+            <div style="position:absolute;bottom:20px;right:20px;text-align:right;">
+                <p style="font-size:12px;margin:2px 0;">大凉国众生一卡通管理中心</p>
+                <p style="font-size:11px;margin:2px 0;">唯一标识：<span id="card-unique-id">--</span></p>
+            </div>
+        </div>
+        <!-- 卡片操作按钮 -->
+        <button class="submit" style="position:absolute;top:20px;right:20px;padding:6px 15px;font-size:14px;" onclick="cancelCard()">解除卡片</button>
+    </div>
+
+    <!-- 卡片使用信息 -->
+    <div id="card-info" style="display:none;margin-top:30px;">
+        <h3 style="color:var(--palace-red);">卡片使用信息</h3>
+        <!-- 使用范围 -->
+        <div style="margin-bottom:20px;padding:15px;background:#f5f7fa;border-radius:8px;">
+            <h4 style="margin-top:0;color:#333;">适用范围</h4>
+            <ul style="margin:5px 0;padding-left:20px;">
+                <li>公共交通：星际轨道列车、区域穿梭巴士、空中通勤机</li>
+                <li>社保服务：养老金领取、失业保障申领、社保信息查询</li>
+                <li>医疗服务：医院就诊结算、医保药品购买、健康档案查询</li>
+                <li>公共服务：政务大厅办事、图书馆借阅、公共场馆入场</li>
+                <li>民生服务：水电燃气缴费、社区服务办理、福利补贴领取</li>
+            </ul>
+        </div>
+        <!-- 注意事项 -->
+        <div style="margin-bottom:20px;padding:15px;background:#fff8e1;border-radius:8px;border-left:3px solid var(--palace-gold);">
+            <h4 style="margin-top:0;color:#333;">注意事项</h4>
+            <ul style="margin:5px 0;padding-left:20px;">
+                <li>本卡与通证绑定，仅限本人使用，不得转借他人</li>
+                <li>卡片丢失请及时通过政务系统挂失，避免权益受损</li>
+                <li>卡片有效期与通证一致，到期前需办理续期手续</li>
+                <li>使用时需保持卡片芯片清洁，避免刮损或高温环境</li>
+                <li>社保、医保功能需完成线下激活，激活点可通过政务系统查询</li>
+            </ul>
+        </div>
+        <!-- 使用历史 -->
+        <div>
+            <h4 style="color:#333;">使用历史</h4>
+            <div id="card-usage-history" class="record-list">
+                <!-- 无使用记录时显示 -->
+                <div id="no-usage-record" class="record-item" style="justify-content:center;color:#666;">暂无使用记录</div>
+                <!-- 使用记录将动态添加 -->
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+// 初始化一卡通板块
+document.addEventListener("DOMContentLoaded", function() {
+    // 自动填充通证编号
+    const token = document.getElementById('userToken').textContent;
+    if (token && token !== '--') {
+        document.getElementById('card-token').value = token;
+    }
+
+    // 检查是否已办卡
+    const cardData = localStorage.getItem('daliang-universal-card');
+    if (cardData) {
+        renderCard(JSON.parse(cardData));
+    }
+
+    // 加载使用历史
+    loadCardUsageHistory();
+});
+
+// 提交办卡申请
+function submitCardApplication() {
+    const realname = document.getElementById('card-realname').value.trim();
+    const token = document.getElementById('card-token').value.trim();
+    const phone = document.getElementById('card-phone').value.trim();
+    const address = document.getElementById('card-address').value.trim();
+    const cardType = document.getElementById('card-type').value;
+
+    if (!realname || !token || !phone || !address) {
+        alert('请填写完整办卡信息');
+        return;
+    }
+
+    // 生成卡片数据
+    const cardData = {
+        realname: realname,
+        token: token,
+        phone: phone,
+        address: address,
+        cardType: cardType === 'standard' ? '标准卡（含交通+社保+医保功能）' : 
+                  cardType === 'senior' ? '老年卡（额外享优惠政策）' : '学生卡（额外享教育相关功能）',
+        applyDate: new Date().toLocaleDateString(),
+        uniqueId: 'DC' + token.substr(-6) + Math.floor(Math.random() * 1000).toString().padStart(3, '0'),
+        status: 'normal'
+    };
+
+    // 存储到localStorage
+    localStorage.setItem('daliang-universal-card', JSON.stringify(cardData));
+    renderCard(cardData);
+    alert('办卡成功！大凉国众生一卡通已生效');
+}
+
+// 渲染已办卡片
+function renderCard(cardData) {
+    document.getElementById('card-apply-form').style.display = 'none';
+    document.getElementById('card-display').style.display = 'block';
+    document.getElementById('card-info').style.display = 'block';
+
+    // 填充卡片信息
+    document.getElementById('card-display-name').textContent = cardData.realname;
+        document.getElementById('card-display-token').textContent = cardData.token;
+    document.getElementById('card-display-type').textContent = cardData.cardType;
+    document.getElementById('card-display-date').textContent = cardData.applyDate;
+    document.getElementById('card-unique-id').textContent = cardData.uniqueId;
+}
+
+// 解除卡片
+function cancelCard() {
+    if (confirm('确定要解除大凉国众生一卡通吗？解除后需重新办卡')) {
+        localStorage.removeItem('daliang-universal-card');
+        localStorage.removeItem('daliang-card-usage-history');
+        document.getElementById('card-display').style.display = 'none';
+        document.getElementById('card-info').style.display = 'none';
+        document.getElementById('card-apply-form').style.display = 'block';
+        // 重置表单
+        document.getElementById('card-realname').value = '';
+        document.getElementById('card-phone').value = '';
+        document.getElementById('card-address').value = '';
+        document.getElementById('card-type').value = 'standard';
+        alert('卡片已解除，如需使用请重新办卡');
+    }
+}
+
+// 加载使用历史
+function loadCardUsageHistory() {
+    const history = localStorage.getItem('daliang-card-usage-history');
+    const historyContainer = document.getElementById('card-usage-history');
+    
+    if (history) {
+        const historyList = JSON.parse(history);
+        if (historyList.length > 0) {
+            document.getElementById('no-usage-record').style.display = 'none';
+            historyList.forEach(item => {
+                const recordItem = document.createElement('div');
+                recordItem.className = 'record-item';
+                recordItem.innerHTML = `
+                    <span>${item.scene} - ${item.action}</span>
+                    <span>${item.time}</span>
+                `;
+                historyContainer.appendChild(recordItem);
+            });
+        }
+    }
+}
+
+// 模拟添加使用记录（可在其他功能中调用，此处仅为示例入口）
+function addCardUsageRecord(scene, action) {
+    const history = localStorage.getItem('daliang-card-usage-history') ? 
+                   JSON.parse(localStorage.getItem('daliang-card-usage-history')) : [];
+    history.unshift({
+        scene: scene,
+        action: action,
+        time: new Date().toLocaleString()
+    });
+    // 最多保留20条记录
+    if (history.length > 20) history.pop();
+    localStorage.setItem('daliang-card-usage-history', JSON.stringify(history));
+    // 刷新历史记录显示
+    document.getElementById('card-usage-history').innerHTML = '';
+    loadCardUsageHistory();
+}
+</script>
+    
     <section id="parliament" class="section">
     <h2>议案投票</h2>
     <div id="proposal-list">
@@ -375,7 +598,7 @@ function decodeToken() {
 
 <div id="modal-register" class="modal"><div class="modal-content">
     <div class="modal-head"><span class="zh">注册/续期通证</span><span class="en">Register/Renew</span><span class="close-btn" onclick="closeModal()">&times;</span></div>
-    <form onsubmit="alert('提交成功（模拟）');closeModal();return false;"><label class="zh">姓名</label><input required><label class="zh">身份证号码</label><input required><button class="submit" type="submit">提交</button></form>
+    <form onsubmit="alert('提交成功（模拟）');closeModal();return false;"><label class="zh">姓名</label><input required><label class="zh">通证编码</label><input required><button class="submit" type="submit">提交</button></form>
 </div></div>
 
 <div id="modal-special" class="modal"><div class="modal-content">
@@ -405,7 +628,7 @@ function decodeToken() {
 
 <div id="modal-loginhist" class="modal"><div class="modal-content">
     <div class="modal-head"><span class="zh">登录历史</span><span class="close-btn" onclick="closeModal()">&times;</span></div>
-    <table width="100%"><tr><th>日期</th><th>登录地点</th></tr><tr><td>正应元年八月二日</td><td>京师凡多万</td></tr><tr><td>正应元年八月四日</td><td>瀛凰特区</td></tr></table>
+    <table width="100%"><tr><th>日期</th><th>登录地点</th></tr><tr><td>正应元年八月二日</td><td>京师凡多</td></tr><tr><td>正应元年八月四日</td><td>瀛凰特区</td></tr></table>
 </div></div>
 
 <script>
