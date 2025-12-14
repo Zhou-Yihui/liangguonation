@@ -535,3 +535,60 @@
     </script>
 </body>
 </html>
+
+<!-- ===== 号码属地查询 ===== -->
+<div style="margin:20px;padding:16px;border:1px solid #eee;border-radius:8px;">
+  <h3>号码属地查询</h3>
+  <input  id="phoneInput"
+          type="text"
+          placeholder="输入号码（如 +3-260-001-12345678）"
+          style="width:100%;padding:8px;margin:8px 0"
+          onkeypress="if(event.key==='Enter') queryPhoneArea()">
+  <button onclick="queryPhoneArea()"
+          style="padding:8px 16px;background:#004bbb;color:#fff;border:none;border-radius:4px">查询属地</button>
+  <div id="areaResult" style="margin-top:12px;color:#333;font-weight:bold"></div>
+</div>
+
+<script>
+/* ---------- 工具函数 ---------- */
+function getPhonePrefix(phone) {
+  const m = phone.trim().match(/^\+3-([\d-]+)-\d{8}$/);
+  return m ? m[1] : '';
+}
+
+function findAreaByPrefix(prefix) {
+  // 直接复用页面已有的 fixedCodes 变量
+  for (const prov in fixedCodes) {
+    for (const city in fixedCodes[prov]) {
+      for (const dist in fixedCodes[prov][city]) {
+        if (fixedCodes[prov][city][dist] === prefix) {
+          const districtName = dist === '_central' ? '直辖区' : dist;
+          return `${prov} > ${city} > ${districtName}`;
+        }
+      }
+    }
+  }
+  return '未匹配到属地';
+}
+
+/* ---------- 查询主函数 ---------- */
+function queryPhoneArea() {
+  const phone = document.getElementById('phoneInput').value;
+  const resultBox = document.getElementById('areaResult');
+
+  if (!phone) { alert('请输入号码'); return; }
+
+  const prefix = getPhonePrefix(phone);
+  if (!prefix) {
+    resultBox.textContent = '号码格式错误（应为 +3-前缀-8位数字）';
+    resultBox.style.color = 'crimson';
+    return;
+  }
+
+  const area = findAreaByPrefix(prefix);
+  resultBox.textContent = `属地：${area}`;
+  resultBox.style.color = area.includes('未匹配') ? 'crimson' : '#004bbb';
+}
+</script>
+</body>
+</html>
