@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>大凉国地图导航</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        body { margin: 0; padding: 0; }
+        #map { width: 100vw; height: 100vh; }
+        .leaflet-popup-content { font-size: 14px; }
+    </style>
+</head>
+<body>
+<div id="map"></div>
+<script>
+    // 1. 大凉国行政数据（完整保留）
+    const daLiangData = {
+        "江中道": { "忠州府": ["南城县","北城县"], "边城府": ["边南县","边北县"], "四部府": ["四一部","四二部"], "中阴府": ["中阴聚落"] },
+        "川阳道": { "中阳府": ["高陵县"], "周康府": ["采邑公社"], "翊州府": ["翊州聚落"] },
+        "定州道": { "顺庆府": ["顺庆县"], "冞州府": ["忘忧区"], "宝华府": ["宝华县"], "泽州府": ["泽州县"], "台陵府": ["天采公社"] },
+        "京畿道": { "会州府": ["南会县","阳关县"], "东华府": ["东华县"], "东琉府": ["东琉璃山脉自然生态保护区"], "圣天元堡": ["圣天堡聚落"], "圣颜宇翔堡": ["文於公社"] },
+        "西琉道": { "山南府": ["卑赧区"], "箕尾府": ["原南县"], "川南林区": ["灵山县"] },
+        "嘉杭道": { "余州府": ["锦上公社"], "江南府": ["沁江公社","江右公社"] },
+        "宪宽道": { "顺都府": ["中都公社","天中县","江东县"], "神中府": ["神中县"], "明安府": ["明安县"] },
+        "平原道": { "成邑府": ["圣都公社"], "函州府": ["函州县"], "中旸府": ["中旸县"] },
+        "庐睘道": { "合江府": ["平至县"], "淝阴府": ["淝阴县"], "雍庆府": ["雍庆县"] },
+        "朔口道": { "中护府": ["关南县"], "西和府": ["山戊县"] },
+        "广北道": { "广宁府": ["广宁县"], "也州府": ["也州县"], "光华府": ["光华县"], "万池府": ["峡间县","西地县","南池县","东涟县"], "邑川府": ["岭南县"], "望州府": ["染陂县"], "洲角府": ["临沙县"] },
+        "上再黎道": { "口边府": ["口边县"], "庆叻府": ["庆叻县"], "海防港府": ["海防聚落"], "西川府": ["西川县"], "徐庆元府": [] },
+        "真和道": { "海南府": ["海南县"] },
+        "禹远道": { "东宁府": ["东宁县"], "广平府": ["广平县"], "文正府": ["文正县"], "禹恒府": ["禹恒县"], "晨州府": ["晨州县"], "清远府": ["清远县"], "临少府": ["艾恒公社"], "夹川府": ["夹川县"] },
+        "景阳道": { "宫阳府": ["花涯区","江陵区"], "明华府": ["明华县"], "晖良府": ["晖良县"] },
+        "九凉道": { "高凉府": ["高凉县"], "平颖府": ["平颖县"], "民治府": ["民和县","齐治县"], "中华府": [], "下凉府": [], "山州府": [] },
+        "安诸省": { "勐开府": ["钦孜县","众安区"], "越都府": ["上安县"], "正太府": ["正太县"], "邑州府": ["尚竹区"] },
+        "德意志罗曼省": { "圣柏林郡": ["克拉维亚县"], "厄斯曼大区": ["厄斯曼聚落"], "哈得里奥大区": ["哈得里奥聚落"] },
+        "巴萨克省": { "哈拉苏喇府": ["哈拉苏喇县"], "哈剌林特府": ["哈剌林特县"], "蒙车利": ["蒙车利聚落"], "南额朵儿戈壁": ["戈壁聚落"], "巴萨赛托": ["那加克列亚郡"], "乌塞提斯": ["列尔那郡"], "坎梅拉": ["乌加尔郡"], "林边": ["林边聚落"], "敖堂": ["敖堂聚落"], "呼尔林那盟": ["喀拉尔旗"], "瑟日丹": ["瑟日那聚落"], "突厥利亚斯克": [], "乌察米尔台科列亚布卡拉维斯克": [], "迦伐罗": [] },
+        "南极边区都护": { "仙隐都府": [], "真化部": [], "德化部": [], "妙上齐道部": [], "清一部": [], "色列那部": [], "光上部": [], "霍尔浩林部": [] },
+        "如意路": { "如意城": [], "宝自在": [], "释那迦舍": [], "极乐城": [], "如意宝王": [], "毗琉璃波罗奈": [], "摩诃苏罗提诃": [], "波惹那舍那提": [], "福城": [], "净名": [], "晴凉": [], "云相": [], "摩尼": [], "吉庆": [], "光化": [], "旃檀海": [], "圆觉": [], "清泰": [], "空相": [] },
+        "碧色欢喜路": { "未列具体府": [] },
+        "交港府": { "滟阳县": [], "临渚县": [], "沙湾嘴区": [], "遥安公社": [] },
+        "热久府": { "伊奈县": [] },
+        "襄川府": { "域南县": [] },
+        "凡多府": { "圣京公社": ["锦光街道"], "大都公社": ["中交街道"], "麦和经济开发区": [], "灵泽县": ["白昭乡"], "景民县": [], "屋桓县": ["南桓乡"], "西郊新区": [], "胜安新区": ["观上区"] },
+        "依利伐亦省": { "布哈拉郡": ["布哈拉聚落"], "厄里亚那": ["厄里亚那聚落"], "阿扎伊尔沙漠区": [] },
+        "阿列夫泰州": { "阿列夫泰郡": ["阿列夫泰聚落"], "不日那比尔大区": ["不日那比尔聚落"], "契莫诃耶夫大区": ["契莫诃耶夫聚落"], "塞雅格琳堡大区": ["塞雅格琳堡聚落"] },
+        "友谊道": { "法兰瑞": ["法兰瑞聚落"], "康瑞": ["康瑞聚落"], "云宝黛维诗": ["云宝黛维诗聚落"], "波克布洛克": ["波克布洛克聚落"], "多惹埃蒙": [] },
+        "阿底舍利道": { "日库吉涅钦": ["日库吉涅钦聚落"], "上康": ["上康聚落"], "襄嘉措王": ["襄嘉措王聚落"], "乌尔那": ["乌尔那聚落"], "摩诃慕提斯": ["摩诃慕提斯聚落"] },
+        "普拉特尔坎邦": { "阿瓦纳基": [], "卡克斯提亚雨林区": [] },
+        "玛提莫尔地区": { "乌里耶兹": [], "乌察不斯": [], "乌察赛布斯•比耶输迦那": [], "摩诃萨林那": [], "布洛克": [] },
+        "密利耶菲尔达省": { "里卡瑞亚": [], "伊泽克里斯提那": [] },
+        "尔喀布尼利克州": { "莱诺": [], "杰西卡利亚": [] },
+        "国上道": { "国上": [] },
+        "和谐道": { "图哈达": [] },
+        "库亚拉省": { "恩贡多": [] },
+        "瓦加马尔西南特区": { "萨赫特": [], "穆巴扎哈姆": [], "锡尔瓦": [], "泽加万": [], "卡伊图姆": [], "阿巴尔卡": [] },
+        "工业道": { "工业城": [], "大工府": [], "生物工程城": [], "日化城": [], "化学城": [], "物理城": [] },
+        "燕阳道": { "解放府": [], "赤塔府": [] },
+        "北海省": { "斯大林格勒林亚": [], "克亚保加港": [], "巴提乌": [], "明利察": [] },
+        "东方道": { "大庭府": ["临琉县","邶水区"], "极州府": ["沿厄县"], "静灵府": [], "般若府": [] },
+        "宇联特区": { "圣万德": [] },
+        "瀛凰特别行政区": { "鹰咀市": [], "沙道市": [], "饶汀梁市": [], "原上市": [], "麓川市": [] },
+        "洢甸道": { "会南府": [], "江口府": ["乂宁县","江北县","洢左县"], "高甸府": [] },
+        "巴娜道": { "巴娜利亚": [], "桑格耶": [], "卡尼德": [], "雅雅亚奇": [], "萨雅耶": [], "提苏": [], "卡娜巴多": [] },
+        "长庆道": { "圣金府": [], "曹阳府": ["庆阳县"], "深城府": ["生米县","星可区"], "御州府": [] },
+        "关内道": { "兴庆府": ["隰县"] },
+        "梦幻道": { "联和府": ["幻州县"] },
+        "海西省": { "西海口": [], "牦城": [], "边海": [], "西山": [], "极西": ["西域边"] },
+        "京华府": { "北地县": ["于乡"], "观阳军事区": [], "江边县": [], "户华公社": [], "庆阴县": [], "雍泠区": [], "陵明公社": [], "湖西区": ["临仓镇"] },
+        "上苏维埃省": { "布尔什维格勒": [] },
+        "梵网教区": { "毗阇耶城": [], "麦迪什布": [], "道上": [], "伊尔雅克": [] },
+        "苏丹省": { "瓜哈图姆苏尔加": [] },
+        "上和乐道": { "无明府": [], "上元府": ["圆明公社","自在县"], "仓南府": ["滨湖公社","湖南区","仓阴县"] },
+        "江北道": { "毛泽东府": [], "乌维拉日尼乌察别列斯克": [] },
+        "西江道": { "沂昌府": ["昌西县","昌东县"], "和东府": [] },
+        "必支府": { "久弯县": [] },
+        "涧门道": { "忻春府": ["塔古县","涧源区"], "江间府": [] },
+        "易关省": { "关中府": [], "西会府": ["银陵区"] },
+        "溟川路": { "冥山府": [] },
+        "天极法路": { "明正府": [] }
+    };
+
+    // 2. 初始化地图 + 全局变量
+    const map = L.map('map').setView([35.0, 105.0], 5);
+    let adminLayer, roadLayer, buildingLayer, baseLayer;
+
+    // 3. 纯色底图（无地球元素，大凉国独立星球）
+    baseLayer = L.tileLayer('', {
+        attribution: '大凉国地图导航',
+        tileSize: 256,
+        noWrap: true,
+        minZoom: 3,
+        maxZoom: 15,
+        backgroundColor: '#e8f4f8' // 初始亮色背景
+    }).addTo(map);
+
+    // 4. 随机坐标工具
+    const getRandomCoord = (baseLat, baseLng, offset) => {
+        return [
+            baseLat + (Math.random() - 0.5) * offset,
+            baseLng + (Math.random() - 0.5) * offset
+        ];
+    };
+
+    // 5. 生成不规则行政区边界（真实地形感）
+    const generateGeoJSON = () => {
+        const features = [];
+        const baseLat = 35.0;
+        const baseLng = 105.0;
+        const offsetStep = 8;
+
+        // 生成不规则多边形（核心工具）
+        const getIrregularBounds = (centerLat, centerLng, radius, points = 8) => {
+            const bounds = [];
+            for (let i = 0; i < points; i++) {
+                const angle = (i / points) * Math.PI * 2;
+                const randomRadius = radius * (0.7 + Math.random() * 0.6); // 半径随机波动
+                const lat = centerLat + Math.sin(angle) * randomRadius;
+                const lng = centerLng + Math.cos(angle) * randomRadius;
+                bounds.push([lat, lng]);
+            }
+            bounds.push(bounds[0]); // 闭合多边形
+            return bounds;
+        };
+
+        // 遍历道/省
+        Object.entries(daLiangData).forEach(([dao, fuObj], daoIndex) => {
+            const daoLat = baseLat + (daoIndex % 6 - 3) * offsetStep;
+            const daoLng = baseLng + (Math.floor(daoIndex / 6) - 2) * offsetStep;
+            const daoBounds = getIrregularBounds(daoLat, daoLng, 3);
+            features.push({
+                type: "Feature",
+                properties: { name: dao, level: "dao", desc: "大凉国一级行政区" },
+                geometry: { type: "Polygon", coordinates: [daoBounds] }
+            });
+
+            // 遍历府
+            Object.entries(fuObj).forEach(([fu, xianArr], fuIndex) => {
+                const fuOffset = 1.5;
+                const fuLat = daoLat + (fuIndex % 3 - 1) * fuOffset;
+                const fuLng = daoLng + (Math.floor(fuIndex / 3) - 1) * fuOffset;
+                const fuBounds = getIrregularBounds(fuLat, fuLng, 0.6);
+                features.push({
+                    type: "Feature",
+                    properties: { name: fu, level: "fu", belongTo: dao, desc: "大凉国二级行政区" },
+                    geometry: { type: "Polygon", coordinates: [fuBounds] }
+                });
+
+                // 遍历县
+                if (xianArr.length > 0) {
+                    xianArr.forEach((xian, xianIndex) => {
+                        const xianOffset = 0.3;
+                        const xianLat = fuLat + (xianIndex % 2 - 0.5) * xianOffset;
+                        const xianLng = fuLng + (Math.floor(xianIndex / 2) - 0.5) * xianOffset;
+                        const xianBounds = getIrregularBounds(xianLat, xianLng, 0.1);
+                        features.push({
+                            type: "Feature",
+                            properties: { name: xian, level: "xian", belongTo: fu, desc: "大凉国三级行政区" },
+                            geometry: { type: "Polygon", coordinates: [xianBounds] }
+                        });
+                    });
+                }
+            });
+        });
+
+        // 大陆轮廓（超大不规则多边形）
+        const continentBounds = getIrregularBounds(35.0, 105.0, 15, 12);
+        features.push({
+            type: "Feature",
+            properties: { name: "大凉国大陆", level: "continent", desc: "大凉国全境轮廓" },
+            geometry: { type: "Polygon", coordinates: [continentBounds] }
+        });
+        return { type: "FeatureCollection", features };
+    };
+
+    // 6. 生成真实感道路和建筑
+    const generateDetails = () => {
+        // 道路图层（缩放≥8显示）
+        roadLayer = L.geoJSON(null, {
+            style: () => ({ color: "#666", weight: 2, opacity: 0.8 }),
+            filter: (feature) => map.getZoom() >= 8
+        });
+        // 建筑图层（缩放≥10显示）
+        buildingLayer = L.geoJSON(null, {
+            style: () => ({ color: "#888", weight: 1, fillColor: "#f5f5f5", fillOpacity: 0.7 }),
+            filter: (feature) => map.getZoom() >= 10
+        });
+
+        const geoData = generateGeoJSON();
+        geoData.features.forEach(feature => {
+            if (feature.properties.level === "xian") {
+                const [centerLat, centerLng] = feature.geometry.coordinates[0][0];
+                // 真实感道路（曲线+分支）
+                const roadFeatures = [
+                    // 主路（曲线）
+                    {
+                        type: "Feature",
+                        geometry: {
+                            type: "LineString",
+                            coordinates: [
+                                [centerLng - 0.15, centerLat + Math.random() * 0.05],
+                                [centerLng - 0.07, centerLat + Math.random() * 0.03],
+                                [centerLng + 0.07, centerLat - Math.random() * 0.03],
+                                [centerLng + 0.15, centerLat - Math.random() * 0.05]
+                            ]
+                        }
+                    },
+                    // 支路（随机分支）
+                    {
+                        type: "Feature",
+                        geometry: {
+                            type: "LineString",
+                            coordinates: [
+                                [centerLng - 0.05, centerLat],
+                                [centerLng - 0.08, centerLat + 0.08],
+                                [centerLng - 0.12, centerLat + 0.1]
+                            ]
+                        }
+                    }
+                ];
+                roadLayer.addData({ type: "FeatureCollection", features: roadFeatures });
+
+                // 真实感建筑（不规则形状）
+                const buildingFeatures = [
+                    {
+                        type: "Feature",
+                        geometry: {
+                            type: "Polygon",
+                            coordinates: [[
+                                [centerLng - 0.04, centerLat - 0.04],
+                                [centerLng - 0.04, centerLat - 0.01],
+                                [centerLng - 0.01, centerLat],
+                                [centerLng, centerLat - 0.02],
+                                [centerLng - 0.03, centerLat - 0.04],
+                                [centerLng - 0.04, centerLat - 0.04]
+                            ]]
+                        }
+                    },
+                    {
+                        type: "Feature",
+                        geometry: {
+                            type: "Polygon",
+                            coordinates: [[
+                                [centerLng + 0.02, centerLat - 0.04],
+                                [centerLng + 0.05, centerLat - 0.04],
+                                [centerLng + 0.06, centerLat - 0.01],
+                                [centerLng + 0.03, centerLat],
+                                [centerLng + 0.02, centerLat - 0.02],
+                                [centerLng + 0.02, centerLat - 0.04]
+                            ]]
+                        }
+                    }
+                ];
+                buildingLayer.addData({ type: "FeatureCollection", features: buildingFeatures });
+            }
+        });
+
+        return { roadLayer, buildingLayer };
+    };
+
+    // 7. POI图层（内置图标，无外部图片）
+    const daLiangPOI = [
+        { name: "凉京皇宫", type: "皇宫", coords: [35.0, 105.0], desc: "大凉国都城核心，皇室居所与朝政重地" },
+        { name: "江左驿站", type: "交通枢纽", coords: [32.5, 108.2], desc: "江中道最大驿站，连接南北商路" },
+        { name: "海防港", type: "港口", coords: [28.1, 112.5], desc: "上再黎道重要海港，对外贸易门户" },
+        { name: "东琉璃山脉天池", type: "自然景观", coords: [38.3, 102.7], desc: "京畿道生态保护区核心，圣山天池" },
+        { name: "工业道制造总局", type: "工业核心", coords: [36.8, 106.4], desc: "大凉国重工业基地，兵器与器械工坊" },
+        { name: "梵网教区圣殿", type: "宗教圣地", coords: [40.2, 98.5], desc: "梵网教区中枢，信徒朝圣之所" }
+    ];
+
+    const createPOILayer = () => {
+        const poiLayer = L.layerGroup();
+        // 内置圆形图标样式（按类型区分）
+        const poiStyles = {
+            皇宫: { color: "#d4af37", fillColor: "#ffd700", radius: 12, weight: 2 },
+            交通枢纽: { color: "#1e90ff", fillColor: "#87ceeb", radius: 10, weight: 2 },
+            港口: { color: "#4169e1", fillColor: "#add8e6", radius: 10, weight: 2 },
+            自然景观: { color: "#228b22", fillColor: "#90ee90", radius: 10, weight: 2 },
+            工业核心: { color: "#8b4513", fillColor: "#d2b48c", radius: 10, weight: 2 },
+            宗教圣地: { color: "#ff69b4", fillColor: "#ffb6c1", radius: 10, weight: 2 }
+        };
+
+        daLiangPOI.forEach(poi => {
+            const style = poiStyles[poi.type] || poiStyles.交通枢纽;
+            const marker = L.circleMarker(poi.coords, style);
+            marker.bindPopup(`
+                <h4 style="margin:0;">${poi.name}</h4>
+                <p style="margin:5px 0;">类型：${poi.type}</p>
+                <p style="margin:0;">${poi.desc}</p>
+            `);
+            poiLayer.addLayer(marker);
+        });
+        return poiLayer;
+    };
+
+    // 8. 主题切换功能
+    const mapThemes = {
+        light: {
+            admin: {
+                continent: { color: "#222", weight: 6, fillColor: "#e8f4f8", fillOpacity: 0.1 },
+                dao: { color: "#0066cc", weight: 4, fillColor: "#b3d9ff", fillOpacity: 0.4 },
+                fu: { color: "#2e8b57", weight: 3, fillColor: "#c1e1c1", fillOpacity: 0.5 },
+                xian: { color: "#ff6600", weight: 2, fillColor: "#ffecd1", fillOpacity: 0.6 }
+            },
+            road: { color: "#666", weight: 2, opacity: 0.8 },
+            building: { color: "#888", weight: 1, fillColor: "#f5f5f5", fillOpacity: 0.7 }
+        },
+        dark: {
+            admin: {
+                continent: { color: "#eee", weight: 6, fillColor: "#2a2a2a", fillOpacity: 0.1 },
+                dao: { color: "#4d94ff", weight: 4, fillColor: "#1a365d", fillOpacity: 0.4 },
+                fu: { color: "#66c2a5", weight: 3, fillColor: "#1b4332", fillOpacity: 0.5 },
+                xian: { color: "#ff9f43", weight: 2, fillColor: "#5a3d2b", fillOpacity: 0.6 }
+            },
+            road: { color: "#aaa", weight: 2, opacity: 0.8 },
+            building: { color: "#555", weight: 1, fillColor: "#333333", fillOpacity: 0.7 }
+        }
+    };
+    let currentTheme = 'light';
+
+    const switchTheme = () => {
+        currentTheme = currentTheme === 'light' ? 'dark' : 'light';
+        // 切换底图背景色
+        baseLayer.setStyle({
+            backgroundColor: currentTheme === 'light' ? '#e8f4f8' : '#2a2a2a'
+        });
+        // 切换行政区、道路、建筑样式
+        adminLayer.setStyle(feature => mapThemes[currentTheme].admin[feature.properties.level] || mapThemes[currentTheme].admin.xian);
+        roadLayer.setStyle(mapThemes[currentTheme].road);
+        buildingLayer.setStyle(mapThemes[currentTheme].building);
+    };
+
+    // 9. 搜索功能
+    const generateSearchData = () => {
+        const searchData = [];
+        Object.entries(daLiangData).forEach(([dao, fuObj]) => {
+            searchData.push({ name: dao, level: '道/省', coords: [35 + (Math.random()-0.5)*8, 105 + (Math.random()-0.5)*8] });
+            Object.entries(fuObj).forEach(([fu, xianArr]) => {
+                searchData.push({ name: fu, level: '府', coords: [35 + (Math.random()-0.5)*4, 105 + (Math.random()-0.5)*4] });
+                xianArr.forEach(xian => {
+                    searchData.push({ name: xian, level: '县', coords: [35 + (Math.random()-0.5)*2, 105 + (Math.random()-0.5)*2] });
+                });
+            });
+        });
+        // 添加POI到搜索数据
+        daLiangPOI.forEach(poi => {
+            searchData.push({ name: poi.name, level: poi.type, coords: poi.coords });
+        });
+        return searchData;
+    };
+    const searchData = generateSearchData();
+
+    const addSearchControl = () => {
+        const searchDiv = document.createElement('div');
+        searchDiv.style.position = 'absolute';
+        searchDiv.style.top = '10px';
+        searchDiv.style.left = '50%';
+        searchDiv.style.transform = 'translateX(-50%)';
+        searchDiv.style.zIndex = '1000';
+        searchDiv.style.display = 'flex';
+        searchDiv.style.gap = '5px';
+
+        const searchInput = document.createElement('input');
+        searchInput.placeholder = '搜索行政区/POI名称...';
+        searchInput.style.padding = '5px 10px';
+        searchInput.style.border = '1px solid #ccc';
+        searchInput.style.borderRadius = '3px';
+        searchInput.style.width = '250px';
+
+        const searchBtn = document.createElement('button');
+        searchBtn.innerText = '搜索';
+        searchBtn.style.padding = '5px 10px';
+        searchBtn.style.border = 'none';
+        searchBtn.style.borderRadius = '3px';
+        searchBtn.style.backgroundColor = '#0066cc';
+        searchBtn.style.color = 'white';
+        searchBtn.style.cursor = 'pointer';
+
+        const themeBtn = document.createElement('button');
+        themeBtn.innerText = '切换暗色主题';
+        themeBtn.style.padding = '5px 10px';
+        themeBtn.style.border = 'none';
+        themeBtn.style.borderRadius = '3px';
+        themeBtn.style.backgroundColor = '#666';
+        themeBtn.style.color = 'white';
+        themeBtn.style.cursor = 'pointer';
+
+        // 搜索事件
+        searchBtn.addEventListener('click', () => {
+            const keyword = searchInput.value.trim();
+            const result = searchData.find(item => item.name.toLowerCase() === keyword.toLowerCase());
+            if (result) {
+                map.setView(result.coords, 10);
+                L.popup().setLatLng(result.coords).setContent(`<h4>${result.name}</h4><p>级别/类型：${result.level}</p>`).openOn(map);
+            } else {
+                alert('未找到该地点！');
+            }
+        });
+
+        // 主题切换事件
+        themeBtn.addEventListener('click', () => {
+            switchTheme();
+            themeBtn.innerText = currentTheme === 'light' ? '切换暗色主题' : '切换亮色主题';
+        });
+
+        searchDiv.appendChild(searchInput);
+        searchDiv.appendChild(searchBtn);
+        searchDiv.appendChild(themeBtn);
+        document.body.appendChild(searchDiv);
+    };
+
+    // 10. 模拟导航功能
+    let navigationLayer = L.layerGroup().addTo(map);
+    let isNavigating = false;
+    let navInterval;
+
+    // 生成两点间曲线路线
+    const generateRoute = (startCoords, endCoords) => {
+        const routePoints = [startCoords];
+        const pointCount = 2 + Math.floor(Math.random() * 2); // 2-3个途经点
+        for (let i = 0; i < pointCount; i++) {
+            const lat = startCoords[0] + (endCoords[0] - startCoords[0]) * (i + 1) / (pointCount + 1) + (Math.random() - 0.5) * 0.1;
+            const lng = startCoords[1] + (endCoords[1] - startCoords[1]) * (i + 1) / (pointCount + 1) + (Math.random() - 0.5) * 0.1;
+            routePoints.push([lat, lng]);
+        }
+        routePoints.push(endCoords);
+        return routePoints;
+    };
+
+    // 启动导航
+    const startNavigation = (startCoords, endCoords) => {
+        if (isNavigating) stopNavigation();
+        isNavigating = true;
+
+        const routePoints = generateRoute(startCoords, endCoords);
+        // 绘制导航路线
+        L.polyline(routePoints, {
+            color: "#0066ff",
+            weight: 4,
+            opacity: 0.9,
+            dashArray: "5, 5"
+        }).addTo(navigationLayer);
+
+        // 起点/终点标记
+        L.marker(startCoords, { 
+            icon: L.divIcon({ 
+                html: '<div style="background:#2ecc71;color:white;border-radius:50%;width:20px;height:20px;text-align:center;line-height:20px;">起</div>', 
+                iconSize: [20, 20] 
+            }) 
+        }).addTo(navigationLayer);
+
+        L.marker(endCoords, { 
+            icon: L.divIcon({ 
+                html: '<div style="background:#e74c3c;color:white;border-radius:50%;width:20px;height:20px;text-align:center;line-height:20px;">终</div>', 
+                iconSize: [20, 20] 
+            }) 
+        }).addTo(navigationLayer);
+
+        // 模拟车辆移动
+        let currentPointIndex = 00;
+        const carMarker = L.marker(routePoints[0], {
+            icon: L.divIcon({ 
+                html: '<div style="background:#ff6600;color:white;border-radius:50%;width:16px;height:16px;border:2px solid white;"></div>', 
+                iconSize: [16, 16] 
+            })
+        }).addTo(navigationLayer);
+
+        navInterval = setInterval(() => {
+            currentPointIndex++;
+            if (currentPointIndex >= routePoints.length) {
+                stopNavigation();
+                alert("导航结束！已到达目的地～");
+                return;
+            }
+            carMarker.setLatLng(routePoints[currentPointIndex]);
+            map.setView(routePoints[currentPointIndex], map.getZoom() || 12);
+        }, 200);
+    };
+
+    // 停止导航
+    const stopNavigation = () => {
+        isNavigating = false;
+        clearInterval(navInterval);
+        navigationLayer.clearLayers();
+    };
+
+    // 添加导航控件
+    const addNavControl = () => {
+        const navDiv = document.createElement('div');
+        navDiv.style.position = 'absolute';
+        navDiv.style.top = '50px';
+        navDiv.style.left = '50%';
+        navDiv.style.transform = 'translateX(-50%)';
+        navDiv.style.zIndex = '1000';
+        navDiv.style.display = 'flex';
+        navDiv.style.gap = '5px';
+
+        const startInput = document.createElement('input');
+        startInput.placeholder = '起点（行政区/POI名称）';
+        startInput.style.padding = '5px 10px';
+        startInput.style.border = '1px solid #ccc';
+        startInput.style.borderRadius = '3px';
+        startInput.style.width = '180px';
+
+        const endInput = document.createElement('input');
+        endInput.placeholder = '终点（行政区/POI名称）';
+        endInput.style.padding = '5px 10px';
+        endInput.style.border = '1px solid #ccc';
+        endInput.style.borderRadius = '3px';
+        endInput.style.width = '180px';
+
+        const startBtn = document.createElement('button');
+        startBtn.innerText = '开始导航';
+        startBtn.style.padding = '5px 10px';
+        startBtn.style.border = 'none';
+        startBtn.style.borderRadius = '3px';
+        startBtn.style.backgroundColor = '#2ecc71';
+        startBtn.style.color = 'white';
+        startBtn.style.cursor = 'pointer';
+
+        const stopBtn = document.createElement('button');
+        stopBtn.innerText = '停止导航';
+        stopBtn.style.padding = '5px 10px';
+        stopBtn.style.border = 'none';
+        stopBtn.style.borderRadius = '3px';
+        stopBtn.style.backgroundColor = '#e74c3c';
+        stopBtn.style.color = 'white';
+        stopBtn.style.cursor = 'pointer';
+
+        // 绑定导航事件
+        startBtn.addEventListener('click', () => {
+            const startName = startInput.value.trim();
+            const endName = endInput.value.trim();
+            const startPoint = searchData.find(item => item.name.toLowerCase() === startName.toLowerCase());
+            const endPoint = searchData.find(item => item.name.toLowerCase() === endName.toLowerCase());
+
+            if (startPoint && endPoint) {
+                startNavigation(startPoint.coords, endPoint.coords);
+            } else {
+                alert('起点或终点未找到，请输入正确名称！');
+            }
+        });
+
+        stopBtn.addEventListener('click', stopNavigation);
+
+        navDiv.appendChild(startInput);
+        navDiv.appendChild(endInput);
+        navDiv.appendChild(startBtn);
+        navDiv.appendChild(stopBtn);
+        document.body.appendChild(navDiv);
+    };
+
+    // 11. 核心渲染函数
+    const renderMap = () => {
+        const geoData = generateGeoJSON();
+        const { roadLayer: rLayer, buildingLayer: bLayer } = generateDetails();
+        roadLayer = rLayer;
+        buildingLayer = bLayer;
+        const poiLayer = createPOILayer();
+
+        // 行政区样式
+        const adminStyle = (feature) => {
+            const levelStyles = {
+                continent: { color: "#222", weight: 6, fillColor: "#e8f4f8", fillOpacity: 0.1 },
+                dao: { color: "#0066cc", weight: 4, fillColor: "#b3d9ff", fillOpacity: 0.4 },
+                fu: { color: "#2e8b57", weight: 3, fillColor: "#c1e1c1", fillOpacity: 0.5 },
+                xian: { color: "#ff6600", weight: 2, fillColor: "#ffecd1", fillOpacity: 0.6 }
+            };
+            return levelStyles[feature.properties.level] || levelStyles.xian;
+        };
+
+        // 渲染行政区图层
+        adminLayer = L.geoJSON(geoData, {
+            style: adminStyle,
+            onEachFeature: (feature, layer) => {
+                layer.bindPopup(`
+                    <h3>${feature.properties.name}</h3>
+                    <p>${feature.properties.desc}</p>
+                    ${feature.properties.belongTo ? `<p>隶属：${feature.properties.belongTo}</p>` : ""}
+                `);
+            }
+        }).addTo(map);
+
+        // 添加所有图层
+        roadLayer.addTo(map);
+        buildingLayer.addTo(map);
+        poiLayer.addTo(map);
+
+        // 缩放监听
+        map.on("zoomend", () => {
+            roadLayer.refresh();
+            buildingLayer.refresh();
+        });
+
+        // 基础控件
+        L.control.scale({ imperial: false, position: "bottomleft" }).addTo(map);
+        map.zoomControl.setPosition("bottomright");
+
+        // 渲染搜索、主题、导航控件
+        addSearchControl();
+        addNavControl();
+    };
+
+    // 启动地图（所有函数定义后执行）
+    renderMap();
+
+    // 12. 页面加载提示
+    window.onload = () => {
+        console.log("大凉国地图导航加载完成！");
+        alert("欢迎使用大凉国地图导航\n1. 缩放查看：≥5级显大陆，≥8级显道路，≥10级显建筑\n2. 搜索定位：输入行政区/POI名称快速跳转\n3. 主题切换：支持亮色/暗色模式\n4. 模拟导航：输入起点终点体验实时跟随");
+    };
+
+    // 13. 版权信息
+    const copyright = document.createElement('div');
+    copyright.style.position = 'absolute';
+    copyright.style.bottom = '5px';
+    copyright.style.left = '50%';
+    copyright.style.transform = 'translateX(-50%)';
+    copyright.style.fontSize = '12px';
+    copyright.style.color = '#666';
+    copyright.style.zIndex = '999';
+    copyright.innerText = '© 大凉国舆图署 版权所有';
+    document.body.appendChild(copyright);
+</script>
+</body>
+</html>
