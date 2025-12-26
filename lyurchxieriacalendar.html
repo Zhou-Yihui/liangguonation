@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>明华历 · 太辰纪</title>
+<style>
+/* ===== 中式传统 + 动态祥云 ===== */
+:root{
+  --bg:#fdf8f2;
+  --paper:#fff6eb;
+  --ink:#5c3b1e;
+  --gold:#e6b17a;
+  --accent:#c86b3d;
+  --shadow:0 2px 8px rgba(0,0,0,.08);
+  --radius:12px;
+  --wave:url("data:image/svg+xml,%3Csvg width='40' height='40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 20c5-5 15-5 20 0s15 5 20 0' stroke='%23e6b17a' stroke-width='1' fill='none'/%3E%3C/svg%3E");
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:"PingFang SC","Microsoft YaHei"}
+header{position:sticky;top:0;background:var(--paper);box-shadow:var(--shadow);z-index:9}
+#topCard{padding:12px 14px;display:flex;align-items:center;justify-content:space-between}
+#topCard .l{font-size:20px;font-weight:700}
+#topCard .r{font-size:12px;color:var(--accent)}
+#backToday{background:var(--gold);color:#fff;border:none;padding:4px 10px;border-radius:var(--radius);font-size:12px}
+
+/* 年视图 */
+#yearView{display:flex;flex-wrap:wrap;padding:6px}
+.monthBtn{flex:0 0 25%;padding:6px}
+.monthBtn-inner{width:100%;aspect-ratio:1;background:var(--paper);border-radius:var(--radius);box-shadow:var(--shadow);display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;background-image:var(--wave)}
+.monthBtn-inner .m{font-size:15px;font-weight:700}
+.monthBtn-inner .d{font-size:12px;color:var(--accent);margin-top:4px}
+.monthBtn.active .monthBtn-inner{background:var(--gold);color:#fff}
+
+/* 月视图 */
+#monthView{display:none;min-height:100vh;background:var(--paper)}
+#monthHeader{display:flex;align-items:center;justify-content:space-between;padding:12px 14px}
+#monthHeader .arrow{font-size:24px;padding:0 10px}
+#monthGrid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;padding:0 14px 14px}
+.day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:6px;font-size:15px;position:relative;background-image:var(--wave)}
+.day.today{background:var(--gold);color:#fff;font-weight:700}
+.day.fest::after{content:'';position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:5px;height:5px;border-radius:50%;background:var(--accent)}
+.weekday{font-size:12px;color:var(--accent);text-align:center;padding:4px 0}
+
+/* 底部实时卡片 */
+#liveBar{position:fixed;bottom:0;left:0;right:0;background:var(--paper);border-radius:var(--radius) var(--radius) 0 0;box-shadow:0 -2px 10px rgba(0,0,0,.1);padding:12px 14px;font-size:13px;display:flex;flex-direction:column;gap:6px}
+#liveBar div{display:flex;justify-content:space-between}
+
+/* 互算面板 */
+#convBtn{position:fixed;bottom:86px;right:14px;width:46px;height:46px;border-radius:50%;background:var(--gold);color:#fff;border:none;box-shadow:var(--shadow);font-size:13px;z-index:8}
+#convPanel{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:11}
+#convBox{width:90%;max-width:340px;background:var(--paper);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px}
+#convBox h4{margin-bottom:8px}
+#convBox .row{display:flex;gap:6px;margin:6px 0}
+#convBox input{flex:1;padding:6px;border:1px solid var(--gold);border-radius:4px}
+#convBox button{padding:6px 10px;background:var(--gold);color:#fff;border:none;border-radius:4px}
+#convResult{margin-top:8px;font-size:13px;color:var(--accent)}
+
+/* 星宿罗盘 */
+#ringBtn{position:fixed;bottom:140px;right:14px;width:46px;height:46px;border-radius:50%;background:var(--accent);color:#fff;border:none;box-shadow:var(--shadow);font-size:13px;z-index:8}
+#ringPanel{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:11}
+#ringBox{background:var(--paper);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px}
+#ringBox canvas{display:block;margin:0 auto}
+
+/* 日程浮窗 */
+#schBtn{position:fixed;bottom:20px;right:20px;width:56px;height:56px;border-radius:50%;background:var(--gold);color:#fff;border:none;box-shadow:var(--shadow);font-size:24px;z-index:10}
+#schPanel{position:fixed;bottom:0;left:0;right:0;background:var(--paper);max-height:60vh;border-radius:var(--radius) var(--radius) 0 0;box-shadow:0 -2px 10px rgba(0,0,0,.1);display:none;flex-direction:column;padding:14px;z-index:9}
+#schPanel h4{margin-bottom:8px}
+#schPanel .row{display:flex;gap:6px}
+#schPanel input{flex:1;padding:6px;border:1px solid var(--gold);border-radius:4px}
+#schPanel button{padding:6px 10px;background:var(--gold);color:#fff;border:none;border-radius:4px}
+#schList{flex:1;overflow:auto;margin-top:8px;font-size:13px}
+#schList div{display:flex;justify-content:space-between;padding:4px 0}
+.closeBtn{align-self:flex-end;background:none;border:none;color:var(--accent);font-size:14px}
+</style>
+</head>
+<body>
+<header>
+  <div id="topCard">
+    <div class="l" id="topDate">明华历 · 加载中</div>
+    <div class="r" id="topFest">节日加载中</div>
+    <button id="backToday" onclick="backToToday()">回到今天</button>
+  </div>
+</header>
+
+<!-- 年视图 -->
+<section id="yearView"></section>
+
+<!-- 月视图 -->
+<section id="monthView">
+  <div id="monthHeader">
+    <span class="arrow" onclick="changeMonth(-1)">‹</span>
+    <span id="monthTitle"></span>
+    <span class="arrow" onclick="changeMonth(1)">›</span>
+  </div>
+  <div id="weekdays" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;padding:0 14px 4px;font-size:12px;color:var(--accent);text-align:center">
+    <div>日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div>
+  </div>
+  <div id="monthGrid"></div>
+</section>
+
+<!-- 底部实时条 -->
+<div id="liveBar">
+  <div><span>原子秒</span><span id="atomicSec">0</span></div>
+  <div><span>公历时间</span><span id="utcTime">0000-00-00 00:00:00</span></div>
+  <div><span>太辰日序号</span><span id="taiIdx">0</span></div>
+  <div><span>本太辰日公历区间</span><span id="taiRange">0000-00-00 00:00 ~ 0000-00-00 00:00</span></div>
+  <div><span>星宿</span><span id="xiu">角</span></div>
+</div>
+
+<!-- 互算 -->
+<button id="convBtn" onclick="toggleConv()">转</button>
+<div id="convPanel" onclick="if(event.target===this)this.style.display='none'">
+  <div id="convBox">
+    <button class="closeBtn" onclick="toggleConv()">✕</button>
+    <h4>国历 · 公历 互算</h4>
+    <div class="row">
+      <input type="datetime-local" id="inGreg">
+      <button onclick="convG2M()">公历→明华</button>
+    </div>
+    <div class="row">
+      <input placeholder="年-月-日 时:分" id="inMH">
+      <button onclick="convM2G()">明华→公历</button>
+    </div>
+    <div id="convResult"></div>
+  </div>
+</div>
+
+<!-- 星宿罗盘 -->
+<button id="ringBtn" onclick="toggleRing()">宿</button>
+<div id="ringPanel" onclick="if(event.target===this)this.style.display='none'">
+  <div id="ringBox">
+    <button class="closeBtn" onclick="toggleRing()">✕</button>
+    <h4>二十八宿罗盘</h4>
+    <canvas id="ring" width="240" height="240"></canvas>
+  </div>
+</div>
+
+<!-- 日程 -->
+<button id="schBtn" onclick="toggleSch()">历</button>
+<div id="schPanel">
+  <button class="closeBtn" onclick="toggleSch()">✕</button>
+  <h4>本月日程</h4>
+  <div class="row">
+    <input id="schInput" placeholder="写点什么…">
+    <button onclick="addSch()">保存</button>
+  </div>
+  <div id="schList"></div>
+</div>
+
+<script>
+/* ******** 常量 ******** */
+const TAI_HOUR   = 58 * 3600;
+const DAYS_YEAR  = 3278;
+const MONTH_YEAR = 28;
+const DAYS_MONTH = 116;
+const MONTH_NAMES= [
+  "元月","晓月","观月","临月","华月","宝月","明月",
+  "景月","星月","渊月","玄月","幽月","朗月","霁月",
+  "庆月","诞月","乾月","坤月","瑞月","丰月","安月",
+  "朔月","望月","霜月","炎月","风月","雪月","岁除月"
+];
+const XIU28 = [
+  "角","亢","氐","房","心","尾","箕","斗",
+  "牛","女","虚","危","室","壁","奎","娄",
+  "胃","昴","毕","觜","参","井","鬼","柳",
+  "星","张","翼","轸"
+];
+const FEST={
+  "1-1":"辰元节","1-14":"送元","3278":"别岁",
+  "16-20":"诞庆日","12-11":"会典日","25-2":"正义纪念日","17-24":"英烈纪念日"
+};
+
+/* ******** 原子秒 ↔ Unix ******** */
+function unix2atomic(u){return (u + 1330000*365.2422*86400)/1.2;}
+function atomic2unix(a){return a*1.2 - 1330000*365.2422*86400;}
+
+/* ******** 原子秒 → 明华 ******** */
+function atomic2MH(atm){
+  const td = Math.floor(atm/TAI_HOUR);
+  const y = Math.floor(td/DAYS_YEAR)+1;
+  const yd = td%DAYS_YEAR;
+  const m = Math.floor(yd/DAYS_MONTH)+1;
+  const d = yd%DAYS_MONTH+1;
+  const hr = (atm%TAI_HOUR)/TAI_HOUR*12;
+  return {y,m,d,hr,td};
+}
+
+/* ******** 明华 → 原子秒 ******** */
+function mh2Atomic(y,m,d,h=0){
+  const td = (y-1)*DAYS_YEAR + (m-1)*DAYS_MONTH + (d-1);
+  const atm = td*TAI_HOUR + h/12*TAI_HOUR;
+  return atm;
+}
+
+/* ******** 顶部卡片 ******** */
+function updateTop(){
+  const mh=atomic2MH(unix2atomic(Date.now()/1000));
+  topDate.textContent=`${mh.y}年 ${MONTH_NAMES[mh.m-1]} ${mh.d}日`;
+  const fest=nextFest(mh);
+  topFest.textContent=fest.name?`距${fest.name}还有${fest.days}日`:'';
+}
+function nextFest(mh){
+  const flat=(mh.m-1)*DAYS_MONTH+mh.d;
+  let min=1e4,name='';
+  for(let k in FEST){
+    const [M,D]=k.split('-').map(Number);
+    let f=(M-1)*DAYS_MONTH+D;
+    let diff=f-flat;
+    if(diff<0)diff+=DAYS_YEAR;
+    if(diff<min){min=diff;name=FEST[k];}
+  }
+  return {name,days:min};
+}
+
+/* ******** 实时底栏 ******** */
+function tick(){
+  const unix=Date.now()/1000;
+  const atm=unix2atomic(unix);
+  const mh=atomic2MH(atm);
+  const xiu=XIU28[mh.td%28];
+  atomicSec.textContent=Math.floor(atm);
+  utcTime.textContent=new Date().toLocaleString('sv-SE').replace('T',' ');
+  taiIdx.textContent=mh.td+1;
+  const startUnix=atomic2unix(mh.td*TAI_HOUR);
+  const endUnix=atomic2unix((mh.td+1)*TAI_HOUR);
+  taiRange.textContent=`${new Date(startUnix*1000).toLocaleString('sv-SE').slice(0,16)} ~ ${new Date(endUnix*1000).toLocaleString('sv-SE').slice(0,16)}`;
+  xiu.textContent=xiu;
+}
+setInterval(tick,1000);tick();
+
+/* ******** 年视图 ******** */
+function showYear(){
+  yearView.innerHTML='';
+  monthView.style.display='none';
+  for(let m=1;m<=MONTH_YEAR;m++){
+    const btn=document.createElement('div');
+    btn.className='monthBtn';
+    btn.innerHTML=`<div class="monthBtn-inner"><div class="m">${MONTH_NAMES[m-1]}</div><div class="d">${DAYS_MONTH}日</div></div>`;
+    btn.onclick=()=>showMonth(m);
+    yearView.appendChild(btn);
+  }
+}
+
+/* ******** 月视图 ******** */
+let curM, curY;
+function showMonth(m,y=null){
+  if(y===null)y=atomic2MH(unix2atomic(Date.now()/1000)).y;
+  curM=m;curY=y;
+  yearView.style.display='none';
+  monthView.style.display='block';
+  monthTitle.textContent=`${curY}年 ${MONTH_NAMES[curM-1]}`;
+  drawMonth(curY,curM);
+  loadSch();
+}
+function drawMonth(y,m){
+  monthGrid.innerHTML='';
+  const firstDay=mh2Atomic(y,m,1);
+  const firstWeek=new Date(atomic2unix(firstDay)*1000).getDay();
+  const today=atomic2MH(unix2atomic(Date.now()/1000));
+  for(let i=0;i<firstWeek;i++)monthGrid.appendChild(createDay(''));
+  for(let d=1;d<=DAYS_MONTH;d++){
+    const cell=createDay(d);
+    if(y===today.y&&m===today.m&&d===today.d)cell.classList.add('today');
+    if(FEST[`${m}-${d}`])cell.classList.add('fest');
+    monthGrid.appendChild(cell);
+  }
+}
+function createDay(num){
+  const div=document.createElement('div');
+  div.className='day';
+  div.textContent=num||'';
+  return div;
+}
+function changeMonth(dir){
+  let m=curM+dir, y=curY;
+  if(m>MONTH_YEAR){m=1;y++;}
+  if(m<1){m=MONTH_YEAR;y--;}
+  showMonth(m,y);
+}
+function backToToday(){
+  const mh=atomic2MH(unix2atomic(Date.now()/1000));
+  showMonth(mh.m,mh.y);
+}
+
+/* ******** 触摸滑动 ******** */
+let startX=0;
+document.addEventListener('touchstart',e=>startX=e.touches[0].clientX);
+document.addEventListener('touchend',e=>{
+  if(monthView.style.display==='none')return;
+  const endX=e.changedTouches[0].clientX;
+  if(endX-startX>50)changeMonth(-1);
+  if(startX-endX>50)changeMonth(1);
+});
+
+/* ******** 互算生成器 ******** */
+function toggleConv(){convPanel.style.display=convPanel.style.display==='flex'?'none':'flex';}
+function convG2M(){
+  const inp=document.getElementById('inGreg').value;
+  if(!inp){alert('请选择公历时间');return;}
+  const unix=new Date(inp).getTime()/1000;
+  const atm=unix2atomic(unix);
+  const mh=atomic2MH(atm);
+  const hName=['初辰','二辰','三辰','四辰','五辰','六辰','七辰','八辰','九辰','十辰','十一辰','十二辰'][Math.floor(mh.hr)];
+  convResult.innerHTML=`→ 明华历：${mh.y}年 ${MONTH_NAMES[mh.m-1]} ${mh.d}日 ${hName}`;
+}
+function convM2G(){
+  const txt=document.getElementById('inMH').value.trim();
+  if(!/^\d+-\d{1,2}-\d{1,2}( \d{1,2}:\d{1,2})?$/.test(txt)){alert('格式：年-月-日 时:分（可选）');return;}
+  const [dt,tm]=' '+txt; const [y,m,d]=dt.split('-').map(Number);
+  let h=0;
+  if(tm){const [hh,mm]=tm.split(':');h=parseInt(hh)+parseInt(mm)/60;}
+  const atm=mh2Atomic(y,m,d,h);
+  const unix=atomic2unix(atm);
+  convResult.innerHTML=`→ 公历：${new Date(unix*1000).toLocaleString('sv-SE').slice(0,16).replace('T',' ')}`;
+}
+
+/* ******** 星宿罗盘 ******** */
+function toggleRing(){ringPanel.style.display=ringPanel.style.display==='flex'?'none':'flex';drawRing();}
+function drawRing(){
+  const c=document.getElementById('ring'),ctx=c.getContext('2d');
+  const w=c.width,h=c.height,cx=w/2,cy=h/2,R=90;
+  ctx.clearRect(0,0,w,h);
+  ctx.strokeStyle=ctx.fillStyle='var(--accent)';
+  ctx.font='13px sans-serif';
+  const idx=atomic2MH(unix2atomic(Date.now()/1000)).td%28;
+  for(let i=0;i<28;i++){
+    const angle=(i/28)*2*Math.PI-Math.PI/2;
+    const x=cx+R*Math.cos(angle),y=cy+R*Math.sin(angle);
+    ctx.save();ctx.translate(x,y);ctx.rotate(angle+Math.PI/2);
+    ctx.fillText(XIU28[i],-9,4);ctx.restore();
+    if(i===idx){ctx.beginPath();ctx.arc(x,y,7,0,7);ctx.stroke();}
+  }
+}
+
+/* ******** 日程 ******** */
+function toggleSch(){schPanel.style.display=schPanel.style.display==='flex'?'none':'flex';loadSch();}
+function addSch(){
+  const txt=schInput.value.trim();
+  if(!txt){alert('请输入内容');return;}
+  const key=`sch_${curY}-${curM}`;
+  let arr=JSON.parse(localStorage.getItem(key)||'[]');
+  arr.push(txt);
+  localStorage.setItem(key,JSON.stringify(arr));
+  schInput.value='';
+  loadSch();
+}
+function loadSch(){
+  const key=`sch_${curY}-${curM}`;
+  const arr=JSON.parse(localStorage.getItem(key)||'[]');
+  schList.innerHTML=arr.map((t,i)=>`
+    <div>
+      <span>● ${t}</span>
+      <button onclick="delSch(${i})">删</button>
+    </div>`).join('');
+}
+function delSch(i){
+  const key=`sch_${curY}-${curM}`;
+  let arr=JSON.parse(localStorage.getItem(key)||'[]');
+  arr.splice(i,1);
+  localStorage.setItem(key,JSON.stringify(arr));
+  loadSch();
+}
+
+/* ******** 启动 ******** */
+updateTop();
+setInterval(updateTop,60000);
+showYear();
+</script>
+</body>
+</html>
