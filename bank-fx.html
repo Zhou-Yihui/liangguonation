@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>大涼銀行 | 外匯</title>
+  <style>
+    body {
+      font-family: "Microsoft JhengHei", serif;
+      background: #faf6f0;
+      color: #333;
+    }
+    .header {
+      background: #8b0000;
+      color: #fff;
+      padding: 16px;
+      font-size: 22px;
+      text-align: center;
+    }
+    .content {
+      padding: 16px;
+      background: #fff;
+      margin: 12px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,.1);
+    }
+    .fx-option {
+      padding: 16px;
+      margin-top: 20px;
+      background: #f9f9f9;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+    }
+    .fx-option h3 {
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+    .fx-option p {
+      font-size: 14px;
+      margin: 8px 0;
+    }
+    .fx-option button {
+      padding: 10px 16px;
+      background: #8B0000;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .fx-option button:hover {
+      background: #D4AF37;
+    }
+    .input-container {
+      margin-top: 20px;
+    }
+    input[type="number"], select {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+    .submit-btn {
+      width: 100%;
+      padding: 12px;
+      background: #8B0000;
+      color: white;
+      font-size: 18px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .submit-btn:hover {
+      background: #D4AF37;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">外匯交易</div>
+
+  <div class="content">
+    <h2>選擇交易貨幣</h2>
+
+    <!-- 外汇交易选项 -->
+    <div class="fx-option">
+      <h3>美元兑盧尼茲</h3>
+      <p>匯率：1 USD = 6.5 盧尼茲</p>
+      <button onclick="exchange('USD')">立即交易</button>
+    </div>
+
+    <div class="fx-option">
+      <h3>歐元兑盧尼茲</h3>
+      <p>匯率：1 EUR = 7.2 盧尼茲</p>
+      <button onclick="exchange('EUR')">立即交易</button>
+    </div>
+
+    <div class="fx-option">
+      <h3>英鎊兑盧尼茲</h3>
+      <p>匯率：1 GBP = 8.9 盧尼茲</p>
+      <button onclick="exchange('GBP')">立即交易</button>
+    </div>
+
+    <div class="input-container">
+      <label for="fx-amount">輸入交易金額</label>
+      <input type="number" id="fx-amount" placeholder="輸入金額（盧尼茲）" min="0">
+      <button class="submit-btn" onclick="submitFxTransaction()">提交交易</button>
+    </div>
+  </div>
+
+  <script>
+    function exchange(currency) {
+      alert('您選擇了交易 ' + currency);
+      // 处理外汇交易操作
+    }
+
+    function submitFxTransaction() {
+      var amount = document.getElementById('fx-amount').value;
+      if (amount > 0) {
+        alert('交易成功！交易金額：' + amount + ' 盧尼茲');
+        // 处理提交外汇交易金额
+      } else {
+        alert('請輸入有效的交易金額！');
+      }
+    }
+  </script>
+
+</body>
+</html>

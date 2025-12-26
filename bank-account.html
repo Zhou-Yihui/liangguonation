@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>大涼銀行 | 帳戶總覽</title>
+  <style>
+    body {
+      font-family: "Microsoft JhengHei", serif;
+      background: #faf6f0;
+      color: #333;
+    }
+    .header {
+      background: #8b0000;
+      color: #fff;
+      padding: 16px;
+      font-size: 22px;
+      text-align: center;
+    }
+    .content {
+      padding: 16px;
+      background: #fff;
+      margin: 12px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,.1);
+    }
+    .transaction-history, .balance-info {
+      margin-top: 20px;
+    }
+    .transaction-history table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .transaction-history th, .transaction-history td {
+      padding: 12px;
+      text-align: center;
+      border: 1px solid #ddd;
+    }
+    .balance-info p {
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">帳戶總覽</div>
+
+  <div class="content">
+    <div class="balance-info">
+      <p>帳戶總餘額：<strong>5000.00 盧尼茲</strong></p>
+      <button onclick="go('transfer')">進行轉帳</button>
+      <button onclick="go('deposit')">存款</button>
+    </div>
+
+    <div class="transaction-history">
+      <h3>最近交易</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>日期</th>
+            <th>交易類型</th>
+            <th>金額</th>
+            <th>狀態</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>2025-11-06</td>
+            <td>轉帳</td>
+            <td>-1000.00 盧尼茲</td>
+            <td>完成</td>
+          </tr>
+          <tr>
+            <td>2025-11-05</td>
+            <td>存款</td>
+            <td>+2000.00 盧尼茲</td>
+            <td>完成</td>
+          </tr>
+          <!-- 可以根据需要继续填充 -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    function go(page) {
+      location.href = 'bank-' + page + '.html';
+    }
+  </script>
+</body>
+</html>

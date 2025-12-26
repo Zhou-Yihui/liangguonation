@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>大涼銀行 | LCPS支付</title>
+  <style>
+    body {
+      font-family: "Microsoft JhengHei", serif;
+      background: #faf6f0;
+      color: #333;
+    }
+    .header {
+      background: #8b0000;
+      color: #fff;
+      padding: 16px;
+      font-size: 22px;
+      text-align: center;
+    }
+    .content {
+      padding: 16px;
+      background: #fff;
+      margin: 12px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,.1);
+    }
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #8B0000;
+      color: white;
+      font-size: 18px;
+      border: none;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">LCPS支付</div>
+
+  <div class="content">
+    <h3>立即支付</h3>
+    <input type="text" id="recipient" placeholder="收款人名稱">
+    <input type="text" id="amount" placeholder="支付金額">
+    <button onclick="pay()">確認支付</button>
+  </div>
+
+  <script>
+    function pay() {
+      alert('支付成功！');
+      // 处理支付逻辑
+    }
+  </script>
+
+</body>
+</html>

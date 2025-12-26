@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>大涼銀行 · 銀行轉帳</title>
+
+<style>
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+  background:#faf6f0;
+}
+nav{
+  position:fixed;
+  top:0; left:0; right:0;
+  height:52px;
+  background:linear-gradient(90deg,#8B0000 60%,#D4AF37);
+  color:#FFD700;
+  display:flex;
+  align-items:center;
+  padding:0 16px;
+  font-size:20px;
+  z-index:10;
+}
+#main{
+  padding:75px 15px 30px;
+}
+.box{
+  background:#fff;
+  padding:15px;
+  border-radius:10px;
+  margin-bottom:15px;
+  box-shadow:0 2px 6px rgba(0,0,0,0.1);
+}
+.box h2{
+  margin-top:0;
+  color:#003a88;
+}
+input, select{
+  width:100%;
+  padding:10px;
+  margin-top:10px;
+  border-radius:8px;
+  border:1px solid #ccc;
+  font-size:16px;
+}
+button{
+  width:100%;
+  padding:12px;
+  margin-top:15px;
+  border:none;
+  border-radius:8px;
+  background:#8B0000;
+  color:#FFD700;
+  font-size:18px;
+}
+.grid{
+  display:grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap:15px;
+  margin-top:20px;
+}
+.grid button{
+  padding:15px;
+  background:#28a745;
+  color:#fff;
+  border-radius:10px;
+  font-size:16px;
+  text-align:center;
+}
+.grid button:hover{
+  background:#218838;
+}
+</style>
+</head>
+
+<body>
+
+<nav>
+  ← 返回  
+  &nbsp;&nbsp;銀行轉帳
+</nav>
+
+<div id="main">
+
+  <div class="box">
+    <h2>選擇轉帳類型</h2>
+    <button onclick="showLCPS()">LCPS 即時轉帳</button>
+    <button onclick="showInner()">行內轉帳</button>
+    <button onclick="showCross()">跨行轉帳</button>
+    <button onclick="showOverseas()">海外匯款</button>
+    <button onclick="showQuickPay()">快速支付</button>
+    <button onclick="showAutoTransfer()">定期轉帳</button>
+    <button onclick="showWithdraw()">提現到銀行卡</button>
+    <button onclick="showBillPay()">自動帳單支付</button>
+    <button onclick="showERedEnvelope()">電子紅包</button>
+    <button onclick="showCardManage()">銀行卡管理</button>
+  </div>
+
+  <div class="box">
+    <h2>提示</h2>
+    <p>請選擇上面的轉帳方式開始操作。</p>
+  </div>
+
+  <div class="grid">
+    <button onclick="showLCPS()">LCPS支付</button>
+    <button onclick="showInner()">行內轉帳</button>
+    <button onclick="showCross()">跨行轉帳</button>
+    <button onclick="showOverseas()">海外匯款</button>
+    <button onclick="showQuickPay()">快速支付</button>
+    <button onclick="showAutoTransfer()">定期轉帳</button>
+    <button onclick="showWithdraw()">提現到銀行卡</button>
+    <button onclick="showBillPay()">自動帳單支付</button>
+    <button onclick="showERedEnvelope()">電子紅包</button>
+    <button onclick="showCardManage()">銀行卡管理</button>
+  </div>
+
+</div>
+
+<script>
+// LCPS 即時轉帳
+function showLCPS(){
+  document.getElementById("main").innerHTML = `
+    <div class="box">
+      <h2>LCPS 即時轉帳</h2>
+      <input id="lcpsName" placeholder="收款人姓名">
+      <input id="lcpsAmt" placeholder="金額">
+      <button onclick="lcpsSend()">確認轉帳</button>
+    </div>
+  `;
+}
+
+function lcpsSend(){
+  alert("LCPS轉帳成功（模擬）");
+}
+
+// 行內轉帳
+function showInner(){
+  document.getElementById("main").innerHTML = `
+    <div class="box">
+      <h2>行內轉帳</h2>
+      <input id="innerAcc" placeholder="對方帳號">
+      <input id="innerAmt" placeholder="金額">
+      <button onclick="innerSend()">確認轉帳</button>
+    </div>
+  `;
+}
+
+function innerSend(){
+  alert("行內轉帳成功（模擬）");
+}
+
+// 跨行轉帳
+function showCross(){
+  document.getElementById("main").innerHTML = `
+    <div class="box">
+      <h2>跨行轉帳</h2>
+      <select id="bank">
+        <option value="">選擇銀行</option>
+        <option>涼國銀行</option>
+        <option>北原銀行</option>
+        <option>草原銀行</option>
+      </select>
+      <input id="crossAcc" placeholder="對方帳號">
+      <input id="crossAmt" placeholder="金額">
+      <button onclick="crossSend()">確認轉帳</button>
+    </div>
+  `;
+}
+
+function crossSend(){
+  alert("跨行轉帳成功（模擬）");
+}
+
+// 海外匯款
+function showOverseas(){
+  document.getElementById("main").innerHTML = `
+    <div class="box">
+      <h2>海外匯款</h2>
+      <input id="overseasAcc" placeholder="收款人帳號">
+      <input id="overseasAmt" placeholder="金額">
+      <select id="currency">
+        <option value="">選擇幣種</option>
+        <option>美元</option>
+        <option>歐元</option>
+        <option>英鎊</option>
+      </select>
+      <button onclick="overseasSend()">確認匯款</button>
+    </div>
+  `;
+}
+
+function overseasSend(){
+  alert("海外匯款成功（模擬）");
+}
+
+// 快速支付
+function showQuickPay(){
+  document.getElementById("main").innerHTML = `
+    <div class="box">
+      <h2>快速支付</h2>
+      <input id="quickPayAmt" placeholder="支付金額">
+      <button onclick="quickPaySend()">確認支付</button>
+    </div>
+  `;
+}
+
+function quickPaySend(){
+  alert("支付成功（模擬）");
+}
+
+// 定期轉帳
+function showAutoTransfer(){
+  document.getElementById("main").innerHTML = `
+    <div class="box">
+      <h2>定期轉帳</h2>
+      <input id="autoTransferAmt" placeholder="轉帳金額">
+      <input id="autoTransferDate" placeholder="轉帳日期">
+      <button onclick="autoTransferSend()">確認設置</button>
+    </div>
+  `;
+}
+
+function autoTransferSend(){
+  alert("定期轉帳設置成功（模擬）");
+}
+
+// 提現到銀行卡
+function showWithdraw(){
+  document.getElementById("main").innerHTML = `
+    <div class="box">
+      <h2>提現到銀行卡</h2>
+      <input id="withdrawAmt" placeholder="提現金額">
+      <input id="withdrawAcc" placeholder="銀行卡帳號">
+      <button onclick="withdrawSend()">確認提現</button>
+    </div>
+  `;
+}
+
+function withdrawSend(){
+  alert("提現成功（模擬）");
+}
+
+// 自動帳單支付
+function showBillPay(){
+  document.getElementById("main").innerHTML = `
+    <div class="box">
+      <h2>自動帳單支付</h2>
+      <input id="billAmount" placeholder="帳單金額">
+      <input id="billAcc" placeholder="帳單帳號">
+      <button onclick="billPaySend()">確認支付</button>
+    </div>
+  `;
+}
+
+function billPaySend(){
+  alert("帳單支付成功（模擬）");
+}
+
+// 電子紅包
+function showERedEnvelope(){
+  document.getElementById("main").innerHTML = `
+    <div class="box">
+      <h2>電子紅包</h2>
+      <input id="redEnvelopeAmt" placeholder="紅包金額">
+      <input id="redEnvelopeRecipient" placeholder="收件人帳號">
+      <button onclick="redEnvelopeSend()">發送紅包</button>
+    </div>
+  `;
+}
+
+function redEnvelopeSend(){
+  alert("紅包發送成功（模擬）");
+}
+
+// 銀行卡管理
+function showCardManage(){
+  document.getElementById("main").innerHTML = `
+    <div class="box">
+      <h2>銀行卡管理</h2>
+      <button onclick="addCard()">綁定新卡</button>
+      <button onclick="removeCard()">解绑银行卡</button>
+    </div>
+  `;
+}
+
+function addCard(){
+  alert("銀行卡綁定成功（模擬）");
+}
+
+function removeCard(){
+  alert("銀行卡解绑成功（模擬）");
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>大涼銀行 | 理財</title>
+  <style>
+    body {
+      font-family: "Microsoft JhengHei", serif;
+      background: #faf6f0;
+      color: #333;
+    }
+    .header {
+      background: #8b0000;
+      color: #fff;
+      padding: 16px;
+      font-size: 22px;
+      text-align: center;
+    }
+    .content {
+      padding: 16px;
+      background: #fff;
+      margin: 12px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,.1);
+    }
+    .product-list {
+      margin-top: 20px;
+    }
+    .product {
+      padding: 16px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      background: #f9f9f9;
+    }
+    .product h3 {
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+    .product p {
+      font-size: 14px;
+      margin: 8px 0;
+    }
+    .product button {
+      padding: 10px 16px;
+      background: #8B0000;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .product button:hover {
+      background: #D4AF37;
+    }
+    .input-container {
+      margin-top: 20px;
+    }
+    input[type="number"] {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+    .submit-btn {
+      width: 100%;
+      padding: 12px;
+      background: #8B0000;
+      color: white;
+      font-size: 18px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .submit-btn:hover {
+      background: #D4AF37;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">理財</div>
+
+  <div class="content">
+    <h2>選擇理財產品</h2>
+
+    <!-- 理财产品列表 -->
+    <div class="product-list">
+      <div class="product">
+        <h3>定期理财产品A</h3>
+        <p>年化回报率：5%</p>
+        <p>投资期限：12个月</p>
+        <p>投资金额：最低1000 盧尼茲</p>
+        <button onclick="invest('A')">立即投资</button>
+      </div>
+
+      <div class="product">
+        <h3>活期理财产品B</h3>
+        <p>年化回报率：2.5%</p>
+        <p>投资期限：随时取出</p>
+        <p>投资金额：最低500 盧尼茲</p>
+        <button onclick="invest('B')">立即投资</button>
+      </div>
+
+      <div class="product">
+        <h3>高风险投资产品C</h3>
+        <p>年化回报率：15%（高风险）</p>
+        <p>投资期限：24个月</p>
+        <p>投资金额：最低3000 盧尼茲</p>
+        <button onclick="invest('C')">立即投资</button>
+      </div>
+    </div>
+
+    <!-- 投资金额输入 -->
+    <div class="input-container">
+      <label for="investment-amount">输入投资金额</label>
+      <input type="number" id="investment-amount" placeholder="输入金额（盧尼茲）" min="0">
+      <button class="submit-btn" onclick="submitInvestment()">提交投资</button>
+    </div>
+  </div>
+
+  <script>
+    function invest(product) {
+      alert('您选择了投资产品 ' + product);
+      // 处理产品的投资操作
+    }
+
+    function submitInvestment() {
+      var amount = document.getElementById('investment-amount').value;
+      if (amount > 0) {
+        alert('投资成功！投资金额：' + amount + ' 盧尼茲');
+        // 处理提交的投资金额
+      } else {
+        alert('请输入有效的投资金额！');
+      }
+    }
+  </script>
+
+</body>
+</html>

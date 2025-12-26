@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>大涼銀行｜御覽首頁</title>
+
+  <!-- PWA 顏色 -->
+  <meta name="theme-color" content="#8B0000">
+
+  <!-- Manifest -->
+  <link rel="manifest" href="manifest.json">
+
+  <!-- iOS PWA 支援 -->
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;font-family:"Microsoft JhengHei",serif}
+    body{background:#faf6f0;color:#333;height:100vh;display:flex;flex-direction:column}
+
+    /* 頂部宮廷欄 */
+    .top-bar{height:52px;background:linear-gradient(90deg,#8B0000 60%,#D4AF37);color:#FFD700;
+      display:flex;align-items:center;justify-content:space-between;padding:0 16px;
+      box-shadow:0 2px 6px rgba(0,0,0,.25)}
+    .top-bar .logo{font-size:22px;font-weight:bold;letter-spacing:2px}
+    .top-bar .msg{position:relative}
+    .top-bar .msg span{background:#FF4d4F;color:#fff;border-radius:10px;padding:2px 6px;
+      font-size:11px;position:absolute;top:-6px;right:-6px}
+
+    /* 滾動內容區 */
+    .scroll{flex:1;overflow-y:auto;padding-bottom:60px}
+
+    /* 資產卡片 */
+    .asset-card{background:linear-gradient(135deg,#8B0000 0%,#B22222 50%,#D4AF37 100%);
+      margin:12px;border-radius:16px;padding:20px;color:#fff;box-shadow:0 4px 12px rgba(0,0,0,.2)}
+    .asset-card .eye{display:flex;justify-content:space-between;align-items:center}
+    .asset-card .eye span{font-size:28px;font-weight:bold;text-shadow:0 0 6px rgba(0,0,0,.5)}
+    .asset-card .eye button{background:none;border:none;color:#FFD700;font-size:18px}
+    .asset-card .quick{display:flex;justify-content:space-around;margin-top:18px}
+    .asset-card .quick div{text-align:center;font-size:13px}
+    .asset-card .quick i{display:block;width:40px;height:40px;margin:0 auto 6px;background:#FFD700;
+      border-radius:50%;line-height:40px;color:#8B0000;font-style:normal}
+
+    /* 功能宮格 */
+    .grid{background:#fff;margin:12px;border-radius:12px;display:grid;
+      grid-template-columns:repeat(4,1fr);gap:12px;padding:16px;text-align:center;font-size:12px}
+    .grid i{display:block;width:44px;height:44px;margin:0 auto 6px;background:#8B0000;
+      color:#FFD700;border-radius:10px;line-height:44px;font-style:normal;font-size:20px}
+
+    /* 底部 Dock */
+    .dock{position:fixed;bottom:0;left:0;right:0;height:56px;background:#8B0000;display:flex;
+      border-top:2px solid #D4AF37}
+    .dock div{flex:1;text-align:center;font-size:11px;color:#FFD700;padding-top:6px}
+    .dock i{display:block;font-style:normal;font-size:22px;margin-bottom:2px}
+  </style>
+</head>
+<body>
+
+  <!-- 頂欄 -->
+  <header class="top-bar">
+    <div class="logo">大涼銀行</div>
+    <div class="msg" onclick="go('msg')">&#127543;<span>9</span></div>
+  </header>
+
+  <!-- 滾動區 -->
+  <div class="scroll">
+
+    <!-- 資產 -->
+    <div class="asset-card">
+      <div class="eye">
+        <div>
+          <div style="font-size:13px;">總資產（盧尼茲）</div>
+          <div class="balance" id="balance">0.00</div>
+        </div>
+        <button onclick="toggleEye()">👁</button>
+      </div>
+      <div class="quick">
+        <div onclick="go('transfer')"><i>轉</i>轉帳</div>
+        <div onclick="go('card')"><i>卡</i>銀行卡</div>
+        <div onclick="go('loan')"><i>貸</i>貸款</div>
+        <div onclick="go('life')"><i>繳</i>生活繳費</div>
+      </div>
+    </div>
+
+    <!-- 功能宮格 -->
+    <div class="grid">
+      <div onclick="go('account')"><i>帳</i>帳戶總覽</div>
+      <div onclick="go('lcps')"><i>L</i>LCPS支付</div>
+      <div onclick="go('deposit')"><i>存</i>存款</div>
+      <div onclick="go('invest')"><i>理</i>理財</div>
+      <div onclick="go('insure')"><i>保</i>保險</div>
+      <div onclick="go('gold')"><i>黃</i>黃金</div>
+      <div onclick="go('fx')"><i>匯</i>外匯</div>
+      <div onclick="go('more')"><i>更</i>更多</div>
+    </div>
+  </div>
+
+  <!-- 底部 Dock -->
+  <nav class="dock">
+    <div onclick="go('home')" style="color:#fff"><i>🏠</i>首頁</div>
+    <div onclick="go('wealth')"><i>💰</i>財富</div>
+    <div onclick="go('lcps')"><i>📲</i>LCPS</div>
+    <div onclick="go('life')"><i>🛒</i>生活</div>
+    <div onclick="go('my')"><i>👤</i>我的</div>
+  </nav>
+
+  <script>
+    // 跳到子頁
+    function go(p) {
+      location.href = 'bank-' + p + '.html';
+    }
+
+    // 資產顯隱
+    let hidden = false;
+    function toggleEye() {
+      hidden = !hidden;
+      const user = JSON.parse(localStorage.getItem('daliang_bank_users') || '{}')[localStorage.getItem('daliang_bank_current')];
+      if (user) {
+        document.querySelector('.asset-card .balance').innerText = hidden ? '******' : (user.balance || 0) + ' 盧尼茲';
+      }
+    }
+
+    // 載入餘額
+    const current = localStorage.getItem('daliang_bank_current');
+    if (current) {
+      const users = JSON.parse(localStorage.getItem('daliang_bank_users') || '{}');
+      const user = users[current];
+      if (user) {
+        document.getElementById('balance').innerText = (user.balance || 0) + ' 盧尼茲';
+      }
+    }
+
+    // ✅ 注册 PWA Service Worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js')
+        .catch(err => console.log("SW 註冊失敗：", err));
+    }
+  </script>
+
+</body>
+</html>

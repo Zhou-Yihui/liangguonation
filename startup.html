@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>大涼銀行啟動畫面</title>
+
+  <!-- ✅ PWA 設定 -->
+  <link rel="manifest" href="/BankofLC/manifest.json">
+  <link rel="icon" sizes="512x512" href="/BankofLC/1762443181715.png">
+  <meta name="theme-color" content="#000000">
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #000;
+      overflow: hidden;
+    }
+    .image-container img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      position: absolute;
+      transition: opacity 1s ease-in-out;
+    }
+    .image-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="image-container">
+    <img src="1762444418649.png" id="img1" alt="image 1" style="opacity: 1;">
+    <img src="1762444429563.png" id="img2" alt="image 2" style="opacity: 0;">
+  </div>
+
+  <script>
+    // ✅ 輸入兩張啟動畫面圖片
+    let currentImage = 1;
+    const images = document.querySelectorAll('.image-container img');
+    const delay = 3000; // 每張圖片顯示 3 秒
+
+    function switchImage() {
+      images[currentImage - 1].style.opacity = 0;
+      currentImage = (currentImage % images.length) + 1;
+      images[currentImage - 1].style.opacity = 1;
+    }
+
+    // ✅ 啟動畫面輪播
+    setInterval(switchImage, delay);
+
+    // ✅ 播放完兩張後 → 進入 index.html（你的新首頁）
+    setTimeout(() => {
+      window.location.href = 'index.html';
+    }, delay * images.length + 1000);
+  </script>
+
+  <!-- ✅ PWA：註冊 Service Worker（不強緩存，不干擾頁面） -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/BankofLC/sw.js');
+      });
+    }
+  </script>
+
+</body>
+</html>

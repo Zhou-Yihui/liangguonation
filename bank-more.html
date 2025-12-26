@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>大涼銀行 | 更多服務</title>
+  <style>
+    body {
+      font-family: "Microsoft JhengHei", serif;
+      background: #faf6f0;
+      color: #333;
+    }
+    .header {
+      background: #8b0000;
+      color: #fff;
+      padding: 16px;
+      font-size: 22px;
+      text-align: center;
+    }
+    .content {
+      padding: 16px;
+      background: #fff;
+      margin: 12px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,.1);
+    }
+    .more-option {
+      padding: 16px;
+      margin-top: 20px;
+      background: #f9f9f9;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+    }
+    .more-option h3 {
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+    .more-option button {
+      padding: 10px 16px;
+      background: #8B0000;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .more-option button:hover {
+      background: #D4AF37;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">更多服務</div>
+
+  <div class="content">
+    <h2>選擇更多服務</h2>
+
+    <!-- 更多服務選項 -->
+    <div class="more-option">
+      <h3>優惠活動</h3>
+      <p>查詢當前銀行優惠活動</p>
+      <button onclick="go('promotions')">立即查看</button>
+    </div>
+
+    <div class="more-option">
+      <h3>電子帳單</h3>
+      <p>查看電子帳單和交易記錄</p>
+      <button onclick="go('statements')">立即查看</button>
+    </div>
+
+    <div class="more-option">
+      <h3>信用評分</h3>
+      <p>查看您的信用評分和貸款資格</p>
+      <button onclick="go('credit-score')">查看信用分數</button>
+    </div>
+
+    <div class="more-option">
+      <h3>設置</h3>
+      <p>管理您的賬戶設置</p>
+      <button onclick="go('settings')">修改設置</button>
+    </div>
+  </div>
+
+  <script>
+    function go(page) {
+      alert('您選擇了前往：' + page);
+      // 導向其他頁面處理
+    }
+  </script>
+
+</body>
+</html>

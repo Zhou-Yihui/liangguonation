@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>大涼銀行 | 貸款</title>
+  <style>
+    body {
+      font-family: "Microsoft JhengHei", serif;
+      background: #faf6f0;
+      color: #333;
+    }
+    .header {
+      background: #8b0000;
+      color: #fff;
+      padding: 16px;
+      font-size: 22px;
+      text-align: center;
+    }
+    .content {
+      padding: 16px;
+      background: #fff;
+      margin: 12px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,.1);
+    }
+    .loan-option {
+      padding: 16px;
+      margin-top: 20px;
+      background: #f9f9f9;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+    }
+    .loan-option h3 {
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+    .loan-option p {
+      font-size: 14px;
+      margin: 8px 0;
+    }
+    .loan-option button {
+      padding: 10px 16px;
+      background: #8B0000;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .loan-option button:hover {
+      background: #D4AF37;
+    }
+    .input-container {
+      margin-top: 20px;
+    }
+    input[type="number"] {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+    .submit-btn {
+      width: 100%;
+      padding: 12px;
+      background: #8B0000;
+      color: white;
+      font-size: 18px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .submit-btn:hover {
+      background: #D4AF37;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">貸款選項</div>
+
+  <div class="content">
+    <h2>選擇貸款類型</h2>
+
+    <!-- 貸款選項 -->
+    <div class="loan-option">
+      <h3>個人消費貸款</h3>
+      <p>貸款金額：最高 500,000 盧尼茲</p>
+      <p>利率：年利率 4%</p>
+      <button onclick="applyLoan('個人消費貸款')">立即申請</button>
+    </div>
+
+    <div class="loan-option">
+      <h3>房屋抵押貸款</h3>
+      <p>貸款金額：最高 2,000,000 盧尼茲</p>
+      <p>利率：年利率 3.5%</p>
+      <button onclick="applyLoan('房屋抵押貸款')">立即申請</button>
+    </div>
+
+    <div class="loan-option">
+      <h3>車貸</h3>
+      <p>貸款金額：最高 200,000 盧尼茲</p>
+      <p>利率：年利率 5%</p>
+      <button onclick="applyLoan('車貸')">立即申請</button>
+    </div>
+
+    <div class="input-container">
+      <label for="loan-amount">輸入貸款金額</label>
+      <input type="number" id="loan-amount" placeholder="輸入金額（盧尼茲）" min="0">
+      <button class="submit-btn" onclick="submitLoan()">提交貸款申請</button>
+    </div>
+  </div>
+
+  <script>
+    function applyLoan(type) {
+      alert('您選擇了貸款類型：' + type);
+      // 處理貸款申請
+    }
+
+    function submitLoan() {
+      var amount = document.getElementById('loan-amount').value;
+      if (amount > 0) {
+        alert('貸款申請成功！貸款金額：' + amount + ' 盧尼茲');
+        // 處理提交貸款金額
+      } else {
+        alert('請輸入有效的貸款金額！');
+      }
+    }
+  </script>
+
+</body>
+</html>

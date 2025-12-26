@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>大涼銀行 | 保險</title>
+  <style>
+    body {
+      font-family: "Microsoft JhengHei", serif;
+      background: #faf6f0;
+      color: #333;
+    }
+    .header {
+      background: #8b0000;
+      color: #fff;
+      padding: 16px;
+      font-size: 22px;
+      text-align: center;
+    }
+    .content {
+      padding: 16px;
+      background: #fff;
+      margin: 12px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,.1);
+    }
+    .insurance-list {
+      margin-top: 20px;
+    }
+    .insurance {
+      padding: 16px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      background: #f9f9f9;
+    }
+    .insurance h3 {
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+    .insurance p {
+      font-size: 14px;
+      margin: 8px 0;
+    }
+    .insurance button {
+      padding: 10px 16px;
+      background: #8B0000;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .insurance button:hover {
+      background: #D4AF37;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">保險</div>
+
+  <div class="content">
+    <h2>選擇保險產品</h2>
+
+    <!-- 保險產品列表 -->
+    <div class="insurance-list">
+      <div class="insurance">
+        <h3>人壽保險A</h3>
+        <p>保障範圍：終身保障</p>
+        <p>保費：每月 300 盧尼茲</p>
+        <button onclick="buyInsurance('A')">立即購買</button>
+      </div>
+
+      <div class="insurance">
+        <h3>車險保險B</h3>
+        <p>保障範圍：車禍意外保障</p>
+        <p>保費：每年 1200 盧尼茲</p>
+        <button onclick="buyInsurance('B')">立即購買</button>
+      </div>
+
+      <div class="insurance">
+        <h3>醫療保險C</h3>
+        <p>保障範圍：住院及手術費用</p>
+        <p>保費：每月 500 盧尼茲</p>
+        <button onclick="buyInsurance('C')">立即購買</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function buyInsurance(product) {
+      alert('您選擇了保險產品 ' + product);
+      // 处理购买保单的操作
+    }
+  </script>
+
+</body>
+</html>

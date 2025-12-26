@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>大涼銀行 | 我的</title>
+  <style>
+    body {
+      font-family: "Microsoft JhengHei", serif;
+      background: #faf6f0;
+      color: #333;
+    }
+    .header {
+      background: #8b0000;
+      color: #fff;
+      padding: 16px;
+      font-size: 22px;
+      text-align: center;
+    }
+    .content {
+      padding: 16px;
+      background: #fff;
+      margin: 12px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,.1);
+    }
+    .quick-actions {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 24px;
+    }
+    .quick-actions div {
+      text-align: center;
+      flex: 1;
+      padding: 16px;
+      background: #8b0000;
+      color: #fff;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .quick-actions div:hover {
+      background: #d4af37;
+    }
+    .quick-actions div i {
+      font-size: 28px;
+      margin-bottom: 8px;
+    }
+    .section-title {
+      font-size: 18px;
+      margin-top: 32px;
+      font-weight: bold;
+    }
+    .settings-list {
+      margin-top: 12px;
+    }
+    .settings-item {
+      padding: 12px;
+      background: #f9f9f9;
+      margin: 8px 0;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .settings-item:hover {
+      background: #f1f1f1;
+    }
+    .settings-item i {
+      font-size: 18px;
+      color: #8b0000;
+    }
+    .login-card {
+      width: 90%;
+      max-width: 380px;
+      background: rgba(0, 0, 0, 0.6);
+      padding: 28px 20px;
+      border-radius: 14px;
+      border: 2px solid #D4AF37;
+      box-shadow: 0 0 18px rgba(255, 215, 0, 0.4);
+      margin: 0 auto;
+      color: white;
+    }
+    .login-card input {
+      width: 100%;
+      padding: 12px;
+      margin: 12px 0;
+      background: rgba(0, 0, 0, 0.45);
+      border: 1px solid #D4AF37;
+      border-radius: 6px;
+      font-size: 16px;
+      color: white;
+    }
+    .login-card button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      background: linear-gradient(#8B0000, #6B0000);
+      border: 2px solid #FFD700;
+      border-radius: 6px;
+      color: #FFD700;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.25s;
+    }
+    .login-card button:hover {
+      background: linear-gradient(#A52A2A, #8B0000);
+      box-shadow: 0 0 12px rgba(255, 215, 0, 0.5);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 頂欄 -->
+  <div class="header">大涼銀行 | 我的</div>
+
+  <div class="content">
+    <!-- 登入區域 -->
+    <div class="login-card" id="login-section">
+      <div class="bank-logo"><span>涼</span></div>
+      <div class="bank-title">大涼銀行</div>
+      <input id="acc" placeholder="帳戶名 / 卡號" maxlength="20">
+      <input id="pwd" type="password" placeholder="登入密碼" maxlength="20">
+      <button onclick="login()">安全登入</button>
+      <button onclick="register()">開戶並登入</button>
+    </div>
+
+    <!-- 快捷操作 -->
+    <div class="quick-actions" id="quick-actions" style="display: none;">
+      <div onclick="go('account')">
+        <i>💼</i>
+        <div>帳戶資訊</div>
+      </div>
+      <div onclick="go('card')">
+        <i>💳</i>
+        <div>銀行卡</div>
+      </div>
+      <div onclick="go('loan')">
+        <i>💵</i>
+        <div>貸款</div>
+      </div>
+    </div>
+
+    <!-- 設定區域 -->
+    <div class="section-title">設定</div>
+    <div class="settings-list" id="settings-section" style="display: none;">
+      <div class="settings-item" onclick="go('profile')">
+        <div>個人資料</div>
+        <i class="fa fa-arrow-right"></i>
+      </div>
+      <div class="settings-item" onclick="go('security')">
+        <div>安全設置</div>
+        <i class="fa fa-arrow-right"></i>
+      </div>
+      <div class="settings-item" onclick="go('notifications')">
+        <div>通知設定</div>
+        <i class="fa fa-arrow-right"></i>
+      </div>
+      <div class="settings-item" onclick="go('preferences')">
+        <div>偏好設定</div>
+        <i class="fa fa-arrow-right"></i>
+      </div>
+    </div>
+
+    <!-- 其他服務 -->
+    <div class="section-title">其他服務</div>
+    <div class="settings-list" id="other-services" style="display: none;">
+      <div class="settings-item" onclick="go('transactions')">
+        <div>交易歷史</div>
+        <i class="fa fa-arrow-right"></i>
+      </div>
+      <div class="settings-item" onclick="go('rewards')">
+        <div>積分與獎勳</div>
+        <i class="fa fa-arrow-right"></i>
+      </div>
+      <div class="settings-item" onclick="go('support')">
+        <div>客服支援</div>
+        <i class="fa fa-arrow-right"></i>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const loadUsers = () => JSON.parse(localStorage.getItem('daliang_bank_users') || '{}');
+    const saveUsers = u => localStorage.setItem('daliang_bank_users', JSON.stringify(u));
+    const sha = s => CryptoJS.SHA256(s).toString();
+
+    // 登录函数
+    function login() {
+      const a = acc.value.trim(), p = pwd.value.trim();
+      const db = loadUsers();
+      if (!db[a] || db[a].pwd !== sha(p)) {
+        alert("帳戶名或密碼錯誤");
+        return;
+      }
+
+      localStorage.setItem("daliang_bank_current", a);
+      // 登录成功后隐藏登录界面，显示其他功能
+      document.getElementById('login-section').style.display = 'none';
+      document.getElementById('quick-actions').style.display = 'block';
+      document.getElementById('settings-section').style.display = 'block';
+      document.getElementById('other-services').style.display = 'block';
+    }
+
+    // 注册函数
+    function register() {
+      const a = acc.value.trim(), p = pwd.value.trim();
+      if (!a || !p) {
+        alert("請輸入帳戶名與密碼");
+        return;
+      }
+      if (p.length < 6) {
+        alert("密碼需至少 6 位");
+        return;
+      }
+
+      const db = loadUsers();
+      if (db[a]) {
+        alert("此帳戶已存在");
+        return;
+      }
+
+      db[a] = { pwd: sha(p), balance: 10000, transactions: [] };
+      saveUsers(db);
+
+      localStorage.setItem("daliang_bank_current", a);
+      // 注册并登录成功后，跳转到主页
+      location.href = 'index.html';
+    }
+
+    // 跳转到指定页面
+    function go(p) {
+      location.href = 'bank-' + p + '.html';
+    }
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js"></script>
+
+</body>
+</html>

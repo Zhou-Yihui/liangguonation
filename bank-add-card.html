@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>大涼銀行 - 新增银行卡</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#8B0000">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" sizes="512x512" href="1762443181715.png" type="image/png">
+  <style>
+    body{margin:0;padding:0;font-family:"Microsoft JhengHei","PMingLiU",serif;background:linear-gradient(rgba(139,0,0,.9),rgba(0,0,0,.95)),url("background.jpg");color:#fff}
+    .container{padding:20px;}
+    .card{background:#333;padding:20px;border-radius:10px;margin-bottom:20px;}
+    .card input{width:100%;padding:12px;border-radius:6px;margin:8px 0;}
+    .card button{background:#FFD700;color:#8B0000;width:100%;padding:12px;border-radius:6px;}
+    .card button:hover{background:#D4AF37;}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <h2>添加银行卡</h2>
+      <input id="cardNumber" type="text" placeholder="请输入银行卡号" maxlength="19" />
+      <button onclick="addBankCard()">添加银行卡</button>
+    </div>
+  </div>
+
+  <script>
+    // 获取用户数据
+    const getUsers = () => JSON.parse(localStorage.getItem('daliang_bank_users') || '{}');
+    const setUsers = (u) => localStorage.setItem('daliang_bank_users', JSON.stringify(u));
+
+    // 获取当前用户
+    const currentUser = localStorage.getItem('daliang_bank_current');
+
+    // 添加银行卡
+    function addBankCard() {
+      const cardNumber = document.getElementById('cardNumber').value.trim();
+
+      if (!cardNumber) {
+        return alert('请输入有效的银行卡号');
+      }
+
+      const users = getUsers();
+      if (!users[currentUser]) {
+        return alert('用户数据未找到');
+      }
+
+      // 检查银行卡号是否已存在
+      const bankCards = users[currentUser].bankCards || [];
+      if (bankCards.includes(cardNumber)) {
+        return alert('该银行卡号已经添加过了');
+      }
+
+      bankCards.push(cardNumber);
+      users[currentUser].bankCards = bankCards;
+      setUsers(users);
+      
+      alert('银行卡添加成功');
+      
+      // 添加银行卡后跳转到银行卡管理页面或其他页面
+      location.href = 'bank-cards.html';  // 跳转到银行卡管理页面
+    }
+  </script>
+</body>
+</html>

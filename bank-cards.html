@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>大涼銀行 - 我的银行卡</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#8B0000">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" sizes="512x512" href="1762443181715.png" type="image/png">
+  <style>
+    body{margin:0;padding:0;font-family:"Microsoft JhengHei","PMingLiU",serif;background:linear-gradient(rgba(139,0,0,.9),rgba(0,0,0,.95)),url("background.jpg");color:#fff}
+    .container{padding:20px;}
+    .card{background:#333;padding:20px;border-radius:10px;margin-bottom:20px;}
+    .card button{background:#FFD700;color:#8B0000;width:100%;padding:12px;border-radius:6px;}
+    .card button:hover{background:#D4AF37;}
+    .bank-list{margin-top:20px;}
+    .bank-item{background:#444;padding:15px;margin-bottom:10px;border-radius:8px;}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <h2>我的银行卡</h2>
+      <div id="bankCardsContainer"></div>
+      <button onclick="goToAddCardPage()">添加银行卡</button>
+    </div>
+  </div>
+
+  <script>
+    // 获取用户数据
+    const getUsers = () => JSON.parse(localStorage.getItem('daliang_bank_users') || '{}');
+    const setUsers = (u) => localStorage.setItem('daliang_bank_users', JSON.stringify(u));
+
+    // 获取当前用户
+    const currentUser = localStorage.getItem('daliang_bank_current');
+
+    // 渲染银行卡列表
+    function renderBankCards() {
+      const users = getUsers();
+      const bankCards = users[currentUser]?.bankCards || [];
+
+      const container = document.getElementById('bankCardsContainer');
+      container.innerHTML = '';  // 清空当前列表
+
+      if (bankCards.length === 0) {
+        container.innerHTML = '<p>您尚未添加银行卡。</p>';
+      } else {
+        bankCards.forEach(card => {
+          const div = document.createElement('div');
+          div.className = 'bank-item';
+          div.innerHTML = `银行卡号：${card} <button onclick="removeBankCard('${card}')">删除</button>`;
+          container.appendChild(div);
+        });
+      }
+    }
+
+    // 删除银行卡
+    function removeBankCard(cardNumber) {
+      const users = getUsers();
+      if (!users[currentUser]) return alert('用户数据未找到');
+
+      const bankCards = users[currentUser].bankCards || [];
+      const index = bankCards.indexOf(cardNumber);
+      if (index > -1) {
+        bankCards.splice(index, 1);
+        users[currentUser].bankCards = bankCards;
+        setUsers(users);
+        renderBankCards();  // 刷新银行卡列表
+        alert('银行卡删除成功');
+      }
+    }
+
+    // 页面加载时渲染银行卡列表
+    window.onload = function() {
+      renderBankCards();
+    };
+
+    // 跳转到添加银行卡页面
+    function goToAddCardPage() {
+      location.href = 'bank-add-card.html';  // 跳转到新增银行卡页面
+    }
+  </script>
+</body>
+</html>

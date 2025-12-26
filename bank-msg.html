@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>大涼銀行 | 消息通知</title>
+  <style>
+    body {
+      font-family: "Microsoft JhengHei", serif;
+      background: #faf6f0;
+      color: #333;
+    }
+    .header {
+      background: #8b0000;
+      color: #fff;
+      padding: 16px;
+      font-size: 22px;
+      text-align: center;
+    }
+    .content {
+      padding: 16px;
+      background: #fff;
+      margin: 12px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,.1);
+    }
+    .message-item {
+      padding: 16px;
+      margin-top: 12px;
+      background: #f9f9f9;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .message-item h4 {
+      font-size: 16px;
+      margin: 0;
+    }
+    .message-item p {
+      font-size: 14px;
+      color: #555;
+      margin: 8px 0;
+    }
+    .message-item button {
+      padding: 8px 12px;
+      background: #8B0000;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .message-item button:hover {
+      background: #D4AF37;
+    }
+    .message-item .status {
+      padding: 4px 8px;
+      background: #D3D3D3;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+    .message-item.read .status {
+      background: #4CAF50;
+      color: white;
+    }
+    .message-item.unread .status {
+      background: #F44336;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">消息通知</div>
+
+  <div class="content">
+    <h2>您的消息通知</h2>
+
+    <!-- 消息列表 -->
+    <div class="message-item unread">
+      <div>
+        <h4>銀行系統升級通知</h4>
+        <p>親愛的客戶，銀行系統將於明日進行例行維護，請您提前安排好交易。維護時間為 12:00 - 14:00。</p>
+      </div>
+      <button onclick="markAsRead(this)">標記為已讀</button>
+      <span class="status">未讀</span>
+    </div>
+
+    <div class="message-item read">
+      <div>
+        <h4>優惠活動通知</h4>
+        <p>恭喜您！您已成功參加我們的夏季回饋活動，獲得 5% 現金回饋！請查看您的賬戶以確認詳情。</p>
+      </div>
+      <button onclick="markAsRead(this)">標記為已讀</button>
+      <span class="status">已讀</span>
+    </div>
+
+    <div class="message-item unread">
+      <div>
+        <h4>交易提醒</h4>
+        <p>您剛才進行了 1,000 盧尼茲的支付交易，請確認此交易為您本人操作。如有異常，請立即聯系我們。</p>
+      </div>
+      <button onclick="markAsRead(this)">標記為已讀</button>
+      <span class="status">未讀</span>
+    </div>
+
+  </div>
+
+  <script>
+    function markAsRead(button) {
+      // 變更為已讀狀態
+      const messageItem = button.closest('.message-item');
+      messageItem.classList.remove('unread');
+      messageItem.classList.add('read');
+      const status = messageItem.querySelector('.status');
+      status.textContent = '已讀';
+      status.style.backgroundColor = '#4CAF50';  // 綠色背景
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>大涼銀行 | 存款</title>
+  <style>
+    body {
+      font-family: "Microsoft JhengHei", serif;
+      background: #faf6f0;
+      color: #333;
+    }
+    .header {
+      background: #8b0000;
+      color: #fff;
+      padding: 16px;
+      font-size: 22px;
+      text-align: center;
+    }
+    .content {
+      padding: 16px;
+      background: #fff;
+      margin: 12px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,.1);
+    }
+    .deposit-option {
+      padding: 16px;
+      margin-top: 20px;
+      background: #f9f9f9;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+    }
+    .deposit-option h3 {
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+    .deposit-option p {
+      font-size: 14px;
+      margin: 8px 0;
+    }
+    .deposit-option button {
+      padding: 10px 16px;
+      background: #8B0000;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .deposit-option button:hover {
+      background: #D4AF37;
+    }
+    .input-container {
+      margin-top: 20px;
+    }
+    input[type="number"] {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+    .submit-btn {
+      width: 100%;
+      padding: 12px;
+      background: #8B0000;
+      color: white;
+      font-size: 18px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .submit-btn:hover {
+      background: #D4AF37;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">存款</div>
+
+  <div class="content">
+    <h2>選擇存款類型</h2>
+
+    <!-- 存款選項 -->
+    <div class="deposit-option">
+      <h3>定期存款</h3>
+      <p>年利率：3%</p>
+      <p>存款期限：12個月</p>
+      <button onclick="deposit('定期存款')">立即存款</button>
+    </div>
+
+    <div class="deposit-option">
+      <h3>活期存款</h3>
+      <p>年利率：1%</p>
+      <p>隨時取款</p>
+      <button onclick="deposit('活期存款')">立即存款</button>
+    </div>
+
+    <div class="input-container">
+      <label for="deposit-amount">輸入存款金額</label>
+      <input type="number" id="deposit-amount" placeholder="輸入金額（盧尼茲）" min="0">
+      <button class="submit-btn" onclick="submitDeposit()">提交存款</button>
+    </div>
+  </div>
+
+  <script>
+    function deposit(type) {
+      alert('您選擇了 ' + type);
+      // 处理存款操作
+    }
+
+    function submitDeposit() {
+      var amount = document.getElementById('deposit-amount').value;
+      if (amount > 0) {
+        alert('存款成功！存款金額：' + amount + ' 盧尼茲');
+        // 处理提交存款金额
+      } else {
+        alert('請輸入有效的存款金額！');
+      }
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>大涼銀行 | 生活繳費</title>
+  <style>
+    body {
+      font-family: "Microsoft JhengHei", serif;
+      background: #faf6f0;
+      color: #333;
+    }
+    .header {
+      background: #8b0000;
+      color: #fff;
+      padding: 16px;
+      font-size: 22px;
+      text-align: center;
+    }
+    .content {
+      padding: 16px;
+      background: #fff;
+      margin: 12px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,.1);
+    }
+    .bill-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px;
+      background: #f9f9f9;
+      margin-top: 12px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+    }
+    .bill-item button {
+      padding: 10px 16px;
+      background: #8B0000;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .bill-item button:hover {
+      background: #D4AF37;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">生活繳費</div>
+
+  <div class="content">
+    <h2>選擇繳費項目</h2>
+
+    <!-- 生活繳費項目 -->
+    <div class="bill-item">
+      <span>電費</span>
+      <button onclick="payBill('電費')">立即繳費</button>
+    </div>
+
+    <div class="bill-item">
+      <span>水費</span>
+      <button onclick="payBill('水費')">立即繳費</button>
+    </div>
+
+    <div class="bill-item">
+      <span>燃氣費</span>
+      <button onclick="payBill('燃氣費')">立即繳費</button>
+    </div>
+
+    <div class="bill-item">
+      <span>學費</span>
+      <button onclick="payBill('學費')">立即繳費</button>
+    </div>
+
+    <div class="bill-item">
+      <span>醫療費</span>
+      <button onclick="payBill('醫療費')">立即繳費</button>
+    </div>
+  </div>
+
+  <script>
+    function payBill(billType) {
+      alert('您選擇了繳費項目：' + billType);
+      // 處理繳費操作
+    }
+  </script>
+
+</body>
+</html>

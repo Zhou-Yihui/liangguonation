@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>大涼銀行 - 財富管理</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#8B0000">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" sizes="512x512" href="1762443181715.png" type="image/png">
+  <style>
+    body { margin: 0; padding: 0; font-family: "Microsoft JhengHei", "PMingLiU", serif; background: #faf6f0; color: #333; }
+    .container { padding: 20px; }
+    .wealth-card { background: #333; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+    .wealth-card h2 { margin-bottom: 20px; color: #FFD700; }
+    .wealth-card .details { margin-bottom: 10px; color: #fff; }
+    .wealth-card button { background: #FFD700; color: #8B0000; width: 100%; padding: 12px; border-radius: 6px; margin-top: 15px; font-size: 16px; }
+    .wealth-card button:hover { background: #D4AF37; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="wealth-card">
+      <h2>財富管理</h2>
+      <div class="details">
+        <p><strong>總資產：</strong> <span id="total-assets">0 盧尼茲</span></p>
+        <p><strong>可用資金：</strong> <span id="available-funds">0 盧尼茲</span></p>
+        <p><strong>投資總額：</strong> <span id="investment-total">0 盧尼茲</span></p>
+      </div>
+      <button onclick="viewInvestments()">查看投資項目</button>
+      <button onclick="viewLoans()">查看貸款</button>
+      <button onclick="viewSavings()">查看存款</button>
+      <button onclick="viewInsurance()">查看保險</button>
+    </div>
+  </div>
+
+  <script>
+    // 获取用户数据
+    const getUsers = () => JSON.parse(localStorage.getItem('daliang_bank_users') || '{}');
+    const setUsers = (u) => localStorage.setItem('daliang_bank_users', JSON.stringify(u));
+
+    // 获取当前用户
+    const currentUser = localStorage.getItem('daliang_bank_current');
+
+    // 渲染财富页面的内容
+    function renderWealthPage() {
+      const users = getUsers();
+      const user = users[currentUser];
+
+      if (!user) {
+        alert('用户数据未找到');
+        location.href = 'index.html';  // 用户数据不存在，跳转回首页
+        return;
+      }
+
+      document.getElementById('total-assets').innerText = (user.balance || 0) + ' 盧尼茲';
+      document.getElementById('available-funds').innerText = (user.balance || 0) + ' 盧尼茲';  // 可用资金
+      document.getElementById('investment-total').innerText = (user.investments || []).reduce((sum, inv) => sum + inv.amount, 0) + ' 盧尼茲';  // 投资总额
+    }
+
+    // 查看投资项目
+    function viewInvestments() {
+      location.href = 'bank-investments.html';  // 跳转到投资页面
+    }
+
+    // 查看贷款
+    function viewLoans() {
+      location.href = 'bank-loans.html';  // 跳转到贷款页面
+    }
+
+    // 查看存款
+    function viewSavings() {
+      location.href = 'bank-savings.html';  // 跳转到存款页面
+    }
+
+    // 查看保险
+    function viewInsurance() {
+      location.href = 'bank-insurance.html';  // 跳转到保险页面
+    }
+
+    // 页面加载时渲染财富管理页面
+    window.onload = function() {
+      renderWealthPage();
+    };
+  </script>
+</body>
+</html>
